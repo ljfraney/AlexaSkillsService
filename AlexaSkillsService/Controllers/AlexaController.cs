@@ -1,82 +1,55 @@
-﻿using System;
+﻿using AlexaSkillsService.Filters;
+using AlexaSkillsService.Helpers;
+using AlexaSkillsService.Models;
+using System;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Web.Http;
-using EWCAlexa.Model;
-using AlexaSkillsService.Filters;
-using System.Runtime.CompilerServices;
-using AlexaSkillsService.Helpers;
 
 namespace AlexaSkillsService.Controllers
 {
+    // ReSharper disable once ClassNeverInstantiated.Global
     [UnhandledExceptionFilter]
     [RoutePrefix("api/alexa")]
     public class AlexaController : ApiController
     {
-        #region :   Fields   :
         private const double TimeStampTolerance = 150;
-        private const int DATE_MAX_IN_DAYS = 60; //example of timeframe you might to check for
+        private const int DateMaxInDays = 60; //example of timeframe you might to check for
         private const int CacheExpireMinutes = 5;
 
         //Using custom object to manage 
         RedisCacheManager.IRedisManager _cache;
 
-        #endregion
-
-        #region : Notes : 
-
-
-        #endregion : Notes :
-
-        #region : Redis :
-        //Using cache for persiting important, yet non-permanent session related data
-        //Exmaples of getting and setting. complex objects can be used as well
+        //Using cache for persiting important, yet non-permanent session related data. 
+        //Examaples of getting and setting. Complex objects can be used as well:
         //_cache.Set<string>("key", "value", CacheExpiry);
         //_cache.Get<string>("key");
-        public DateTime CacheExpiry
-        {
-            get
-            {
-                return DateTime.Now.AddMinutes(CacheExpireMinutes);
-            }
-        }
-
-        #endregion : Redis :
-
-        #region : Helpers :
+        public DateTime CacheExpiry => DateTime.Now.AddMinutes(CacheExpireMinutes);
 
         //use this within each method of controller to trap errors
         private async Task<AlexaResponse> ThrowSafeException(Exception exception, AlexaResponse response, [CallerMemberName] string methodName = "")
         {
-            var content = @"We encountered some trouble, but don't worry, we have our team looking into it now.  We apologize for the inconvenience, we should have this fixed shortly. Please try again later.";
+            var content = @"We encountered some trouble, but don't worry, we have our team looking into it now. We apologize for the inconvenience, we should have this fixed shortly. Please try again later.";
+
+            //TODO: Log exception
 
             response.Response.OutputSpeech.Text = content;
             response.Response.ShouldEndSession = true;
 
-            try
-            {
-
-            }
-            catch (Exception ex)
-            {
-                //TODO
-            }
-
             return response;
         }
 
-        #endregion : Helpers :
         public AlexaController()
         {
             _cache = new RedisCacheManager.CacheManager(new RedisCacheManager.StackExchangeCacher(AppSettings.RedisCache));
         }
 
-        #region :   Main-End-Points   :
         [HttpPost, Route("main")]
         public async Task<AlexaResponse> Main(AlexaRequest alexaRequest)
         {
-            AlexaResponse response = new AlexaResponse();
+            var response = new AlexaResponse();
 
             try
             {
@@ -101,6 +74,8 @@ namespace AlexaSkillsService.Controllers
                     case "SessionEndedRequest":
                         response = SessionEndedRequest(alexaRequest, response);
                         break;
+                    default:
+                        throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest));
                 }
 
                 //set value for repeat intent
@@ -114,16 +89,12 @@ namespace AlexaSkillsService.Controllers
             return response;
         }
 
-        #endregion :   Main-End-Points   :
-
-        #region :   Alexa Type Handlers   :
-
         //Example of Amazon.Time Intent
         private async Task<AlexaResponse> ProcessTimeIntent(AlexaRequest request, AlexaResponse response)
         {
             var content = "";
             var reprompt = "";
-            bool isValid = false;
+            var isValid = false;
 
             try
             {
@@ -131,11 +102,9 @@ namespace AlexaSkillsService.Controllers
                 {
                     var slot = request.Request.Intent.Slots;
 
-                    string result = "";
-
                     if (slot["Time"] != null)
                     {
-                        result = (String)slot["Time"].value;
+                        var result = (string)slot["Time"].value;
 
                         isValid = true;
 
@@ -160,9 +129,8 @@ namespace AlexaSkillsService.Controllers
             {
 
                 if (ex.Message.Contains("String was not recognized as a valid DateTime"))
-                {
                     return ProcessRepeatIntent(request, response);
-                }
+                
                 return await ThrowSafeException(ex, response);
             }
 
@@ -174,8 +142,7 @@ namespace AlexaSkillsService.Controllers
         {
 
             var content = "";
-            string theDate = "";
-            bool isValid = false;
+            var isValid = false;
 
             try
             {
@@ -185,30 +152,26 @@ namespace AlexaSkillsService.Controllers
 
                     if (slot["Date"] != null)
                     {
-                        theDate = (String)slot["Date"].value;
+                        var theDate = (string)slot["Date"].value;
 
                         var formattedDate = Convert.ToDateTime(theDate);
 
-                        if (formattedDate > DateTime.Today.AddDays(DATE_MAX_IN_DAYS))
+                        if (formattedDate > DateTime.Today.AddDays(DateMaxInDays))
                         {
-                            content = "Sorry that date was over 60 days from now.  You can say things like: July 26th, or next Tuesday, or any day before " + DateTime.Today.AddDays(DATE_MAX_IN_DAYS).ToShortDateString() + ".";
+                            content = "Sorry that date was over 60 days from now. You can say things like: July 26th, or next Tuesday, or any day before " + DateTime.Today.AddDays(DateMaxInDays).ToShortDateString() + ".";
                             response.Response.ShouldEndSession = false;
                             response.Response.Reprompt.OutputSpeech.Text = content;
                             response.Response.OutputSpeech.Text = content;
                             return response;
                         }
-                        else
-                        {
-                            content = @"";
-                            isValid = true;
-                        }
+
+                        content = "";
+                        isValid = true;
                     }
                 }
 
                 if (!isValid)
-                {
                     return ProcessRepeatIntent(request, response);
-                }
 
                 response.Response.Reprompt.OutputSpeech.Text = content;
                 response.Response.ShouldEndSession = false;
@@ -217,9 +180,8 @@ namespace AlexaSkillsService.Controllers
             catch (Exception ex)
             {
                 if (ex.Message.Contains("String was not recognized as a valid DateTime"))
-                {
                     return ProcessRepeatIntent(request, response);
-                }
+                
                 return await ThrowSafeException(ex, response);
             }
 
@@ -234,7 +196,7 @@ namespace AlexaSkillsService.Controllers
         private AlexaResponse ProcessHelpIntent(AlexaRequest request, AlexaResponse response)
         {
 
-            response.Response.OutputSpeech.Text = @"";
+            response.Response.OutputSpeech.Text = "";
             response.Response.ShouldEndSession = true;
 
             return response;
@@ -249,7 +211,7 @@ namespace AlexaSkillsService.Controllers
 
         private async Task<AlexaResponse> IntentRequest(AlexaRequest request, AlexaResponse response)
         {
-            bool shouldSetLastIntent = true;
+            var shouldSetLastIntent = true;
 
             switch (request.Request.Intent.Name)
             {
@@ -289,9 +251,7 @@ namespace AlexaSkillsService.Controllers
             }
 
             if (shouldSetLastIntent)
-            {
                 response.SessionAttributes.SkillAttributes.LastRequestIntent = request.Request.Intent.Name;
-            }
 
             return response;
         }
@@ -305,13 +265,9 @@ namespace AlexaSkillsService.Controllers
         private AlexaResponse ProcessUnknownIntent(AlexaRequest request, AlexaResponse response)
         {
             if (string.IsNullOrEmpty(request.Session.Attributes.SkillAttributes.LastRequestIntent))
-            {
                 return ProcessHelpIntent(request, response);
-            }
-            else
-            {
-                return ProcessRepeatIntent(request, response);
-            }
+
+            return ProcessRepeatIntent(request, response);
         }
 
         private async Task<AlexaResponse> ProcessYesIntent(AlexaRequest request, AlexaResponse response)
@@ -332,9 +288,7 @@ namespace AlexaSkillsService.Controllers
 
         private async Task<AlexaResponse> ProcessNoIntent(AlexaRequest request, AlexaResponse response)
         {
-            string content = "";
-
-            content = "OK, thanks for listening.";
+            var content = "OK, thanks for listening.";
 
             try
             {
@@ -353,11 +307,9 @@ namespace AlexaSkillsService.Controllers
         private AlexaResponse ProcessThanksIntent(AlexaRequest request, AlexaResponse response)
         {
             var content = "Have a great day!";
-
             response.Response.ShouldEndSession = true;
             response.Response.OutputSpeech.Text = content;
             response.SessionAttributes.SkillAttributes.OutputSpeech = response.Response.OutputSpeech;
-
             return response;
         }
 
@@ -366,11 +318,7 @@ namespace AlexaSkillsService.Controllers
         {
             response.Response.OutputSpeech.Text = "Have a great day gorgeous!";
             response.Response.ShouldEndSession = true;
-
             return response;
         }
-
-        #endregion :   Alexa Type Handlers   :
-
     }
 }

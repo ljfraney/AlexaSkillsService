@@ -126,8 +126,6 @@
     <Compile Include="Handlers\CertificateHandler.cs" />
     <Compile Include="Helpers\AppSettings.cs" />
     <Compile Include="Helpers\SlotChecker.cs" />
-    <Compile Include="Models\AlexaRequest.cs" />
-    <Compile Include="Models\AlexaResponse.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -139,7 +137,12 @@
       <DependentUpon>Web.config</DependentUpon>
     </None>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\AlexaSkillsService.Models\AlexaSkillsService.Models.csproj">
+      <Project>{976a16df-f1e1-464f-ac01-a8d02ab0d761}</Project>
+      <Name>AlexaSkillsService.Models</Name>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>

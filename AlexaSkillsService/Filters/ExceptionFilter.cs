@@ -1,20 +1,17 @@
-﻿using EWCAlexa.Model;
+﻿using AlexaSkillsService.Models;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Web;
 using System.Web.Http.Filters;
 
 namespace AlexaSkillsService.Filters
 {
 
-    public class UnhandledExceptionFilter : System.Web.Http.Filters.ExceptionFilterAttribute
+    public class UnhandledExceptionFilter : ExceptionFilterAttribute
     {
         public override void OnException(HttpActionExecutedContext context)
         {
-            HttpStatusCode status = HttpStatusCode.InternalServerError;
+            var status = HttpStatusCode.InternalServerError;
 
             var exType = context.Exception.GetType();
 
