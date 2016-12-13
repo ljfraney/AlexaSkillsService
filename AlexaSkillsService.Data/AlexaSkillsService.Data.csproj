@@ -49,9 +49,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DontBlowUp\Language.cs" />
+    <Compile Include="DontBlowUp\Game.cs" />
+    <Compile Include="DontBlowUp\Narrative.cs" />
+    <Compile Include="DontBlowUp\RuleType.cs" />
     <Compile Include="DontBlowUp\WireColor.cs" />
-    <Compile Include="DontBlowUp\YearRange.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

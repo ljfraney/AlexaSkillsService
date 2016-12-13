@@ -5,15 +5,18 @@ using System.Data.Entity.ModelConfiguration;
 
 namespace AlexaSkillsService.ORM.DontBlowUp
 {
-    internal class LanguageConfiguration : EntityTypeConfiguration<Language>
+    internal class NarrativeConfiguration : EntityTypeConfiguration<Narrative>
     {
-        public LanguageConfiguration()
+        public NarrativeConfiguration()
         {
-            ToTable("Language", "DontBlowUp");
+            ToTable("Narrative", "DontBlowUp");
 
-            Property(l => l.Name)
-                .HasMaxLength(50)
+            Property(n => n.Key)
+                .HasMaxLength(25)
                 .HasColumnAnnotation(IndexAnnotation.AnnotationName, new IndexAnnotation(new IndexAttribute()));
+
+            Property(n => n.Text)
+                .HasColumnType("nvarchar(max)");
         }
     }
 }

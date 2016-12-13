@@ -1,9 +1,11 @@
 ﻿namespace AlexaSkillsService.Data.DontBlowUp
 {
-    public class WireColor
+    public enum WireColor
     {
-        public int WireColorId { get; set; }
-
-        public string Name { get; set; }
+        Red = 1,
+        Blue = 2,
+        Yellow = 3,
+        White = 4,
+        Black = 5
     }
 }

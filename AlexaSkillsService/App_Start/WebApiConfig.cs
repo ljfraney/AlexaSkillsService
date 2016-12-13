@@ -1,8 +1,4 @@
-﻿
-using AlexaSkillsService.Handlers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using AlexaSkillsService.Handlers;
 using System.Web.Http;
 
 namespace AlexaSkillsService

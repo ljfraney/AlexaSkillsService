@@ -52,9 +52,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AlexaSkillsContext.cs" />
-    <Compile Include="DontBlowUp\LanguageConfiguration.cs" />
-    <Compile Include="DontBlowUp\WireColorConfiguration.cs" />
-    <Compile Include="DontBlowUp\YearRangeConfiguration.cs" />
+    <Compile Include="DontBlowUp\GameConfiguration.cs" />
+    <Compile Include="DontBlowUp\NarrativeConfiguration.cs" />
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -66,6 +65,10 @@
     <ProjectReference Include="..\AlexaSkillsService.Data\AlexaSkillsService.Data.csproj">
       <Project>{b46044c0-ebda-4a7a-8479-b9ed63fcfdcb}</Project>
       <Name>AlexaSkillsService.Data</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\AlexaSkillsService.Interfaces\AlexaSkillsService.Interfaces.csproj">
+      <Project>{170a80cd-b4b4-4e0f-b96d-d5962dda99ec}</Project>
+      <Name>AlexaSkillsService.Interfaces</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

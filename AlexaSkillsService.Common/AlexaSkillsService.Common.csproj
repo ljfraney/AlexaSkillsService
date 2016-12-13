@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B5D06B87-38F2-4BCA-B8C6-1AE699224EF9}</ProjectGuid>
+    <ProjectGuid>{BE7B25AE-E3FA-4FBB-9F1E-8CB0C7DD8AF4}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DontBlowUp</RootNamespace>
-    <AssemblyName>DontBlowUp</AssemblyName>
+    <RootNamespace>AlexaSkillsService.Common</RootNamespace>
+    <AssemblyName>AlexaSkillsService.Common</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -30,16 +30,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System" />
-    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -49,26 +40,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="GameManager.cs" />
+    <Compile Include="RandomHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\AlexaSkillsService.Common\AlexaSkillsService.Common.csproj">
-      <Project>{be7b25ae-e3fa-4fbb-9f1e-8cb0c7dd8af4}</Project>
-      <Name>AlexaSkillsService.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\AlexaSkillsService.Data\AlexaSkillsService.Data.csproj">
-      <Project>{b46044c0-ebda-4a7a-8479-b9ed63fcfdcb}</Project>
-      <Name>AlexaSkillsService.Data</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\AlexaSkillsService.Interfaces\AlexaSkillsService.Interfaces.csproj">
-      <Project>{170a80cd-b4b4-4e0f-b96d-d5962dda99ec}</Project>
-      <Name>AlexaSkillsService.Interfaces</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
