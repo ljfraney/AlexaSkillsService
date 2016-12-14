@@ -1,0 +1,15 @@
+﻿@{
+    ViewBag.Title = "Test";
+    Layout = "~/Views/Shared/_DontBlowUp.cshtml";
+}
+
+<div class="row">
+    <div class="col-sm-12">
+        <h1>Don't Blow Up Test Page</h1>
+
+        @using (Html.BeginForm("NewGame", "DontBlowUp"))
+        {
+            <button type="submit">New Game</button>
+        }
+    </div>
+</div>

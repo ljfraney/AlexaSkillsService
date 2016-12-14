@@ -50,16 +50,20 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IAlexaSkillsContext.cs" />
+    <Compile Include="IDontBlowUpGameManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AlexaSkillsService.Data\AlexaSkillsService.Data.csproj">
       <Project>{b46044c0-ebda-4a7a-8479-b9ed63fcfdcb}</Project>
       <Name>AlexaSkillsService.Data</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\AlexaSkillsService.Models\AlexaSkillsService.Models.csproj">
+      <Project>{976a16df-f1e1-464f-ac01-a8d02ab0d761}</Project>
+      <Name>AlexaSkillsService.Models</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

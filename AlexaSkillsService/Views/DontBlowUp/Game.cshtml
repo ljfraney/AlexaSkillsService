@@ -1,0 +1,20 @@
+﻿@model AlexaSkillsService.Models.DontBlowUp.Game
+@{
+    ViewBag.Title = "Game";
+    Layout = "~/Views/Shared/_DontBlowUp.cshtml";
+}
+
+@if (Model == null)
+{
+    <h1>Bomb Not Found</h1>
+
+    <p>No recent bombs were found with the serial number entered.</p>
+}
+else
+{
+    <h1>Serial Number @Model.SerialNumber</h1>
+
+    <p>@Model.Narrative</p>
+
+    <h2>How to diffuse this bomb:</h2>
+}

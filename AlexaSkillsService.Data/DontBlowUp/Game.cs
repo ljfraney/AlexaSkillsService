@@ -8,6 +8,8 @@ namespace AlexaSkillsService.Data.DontBlowUp
 
         public int SerialNumber { get; set; }
 
+        public int NumberOfWires { get; set; }
+
         public string SessionId { get; set; }
 
         public string UserId { get; set; }

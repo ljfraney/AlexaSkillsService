@@ -1,0 +1,17 @@
+﻿@model AlexaSkillsService.Models.DontBlowUp.Game
+
+@{
+    ViewBag.Title = "Test2";
+    Layout = "~/Views/Shared/_DontBlowUp.cshtml";
+}
+
+<div class="row">
+    <div class="col-sm-12">
+        <h1>Don't Blow Up Test Page</h1>
+
+        <h2>Serial Number: @Model.SerialNumber</h2>
+
+        @Html.ActionLink("Click here to enter the serial number.", "Index")
+    </div>
+</div>
+

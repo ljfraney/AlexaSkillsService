@@ -6,6 +6,7 @@ using System.Data.Entity.ModelConfiguration.Conventions;
 
 namespace AlexaSkillsService.ORM
 {
+    // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
     public class AlexaSkillsContext : DbContext, IAlexaSkillsContext
     {
         public AlexaSkillsContext() : base("name=AlexaSkills")

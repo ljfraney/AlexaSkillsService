@@ -4,30 +4,35 @@
 }
 
 <div id="keypad">
-    <h1>Serial Number</h1>
-    <div>
-        <input type="text"/>
-    </div>
-    <div>
-        <button type="button">7</button>
-        <button type="button">8</button>
-        <button type="button">9</button>
-    </div>
-    <div>
-        <button type="button">4</button>
-        <button type="button">5</button>
-        <button type="button">6</button>
-    </div>
-    <div>
-        <button type="button">1</button>
-        <button type="button">2</button>
-        <button type="button">3</button>
-    </div>
-    <div>
-        <button type="button" style="background-color: #d74040" title="Erase"><i class="glyphicon glyphicon-remove"></i></button>
-        <button type="button">0</button>
-        <button type="button" style="background-color: #1b9c41" title="Submit"><i class="glyphicon glyphicon-ok"></i></button>
-    </div>
+    @using (Html.BeginForm("GoToGame", "DontBlowUp"))
+    {
+        <div style="text-align: center;">
+            <h1>Serial Number</h1>
+        </div>
+        <div>
+            <input class="serialInput" id="serialNumber" name="serialNumber" type="text"/>
+        </div>
+        <div>
+            <button class="numberKey" id="btnKey7" type="button">7</button>
+            <button class="numberKey" id="btnKey8" type="button">8</button>
+            <button class="numberKey" id="btnKey9" type="button">9</button>
+        </div>
+        <div>
+            <button class="numberKey" id="btnKey4" type="button">4</button>
+            <button class="numberKey" id="btnKey5" type="button">5</button>
+            <button class="numberKey" id="btnKey6" type="button">6</button>
+        </div>
+        <div>
+            <button class="numberKey" id="btnKey1" type="button">1</button>
+            <button class="numberKey" id="btnKey2" type="button">2</button>
+            <button class="numberKey" id="btnKey3" type="button">3</button>
+        </div>
+        <div>
+            <button class="numberKey eraseKey" id="btnKeyErase" type="button" title="Erase"><i class="glyphicon glyphicon-remove"></i></button>
+            <button class="numberKey" id="btnKey0" type="button">0</button>
+            <button class="numberKey submitKey" id="btnKeySubmit" type="submit" title="Submit"><i class="glyphicon glyphicon-ok"></i></button>
+        </div>
+    }
 </div>
 
 @section styles {
@@ -38,7 +43,7 @@
             margin-right: auto;
         }
 
-        #keypad button {
+        .numberKey {
             width: 75px;
             height: 75px;
             margin: 4px;
@@ -47,14 +52,37 @@
             border-radius: 99px;
             border: 2px solid #838383;
             background-color: #2d5887;
-            -webkit-box-shadow: #B3B3B3 5px 5px 5px;
-            -moz-box-shadow: #B3B3B3 5px 5px 5px;
-            box-shadow: #B3B3B3 5px 5px 5px;
+            -webkit-box-shadow: #B3B3B3 4px 4px 4px;
+            -moz-box-shadow: #B3B3B3 4px 4px 4px;
+            box-shadow: #B3B3B3 4px 4px 4px;
             color: #ffffff;
             font-size: 2em;
+            -webkit-transition-duration: 0.4s;
+            transition-duration: 0.4s;
         }
 
-        #keypad input { 
+        .numberKey:hover {
+            background-color: #3d79ba;
+            outline: 0;
+        }
+
+        .eraseKey {
+            background-color: #d74040;
+        }
+
+        .eraseKey:hover {
+            background-color: #fd4d4d;
+        }
+
+        .submitKey {
+            background-color: #1b9c41;
+        }
+
+        .submitKey:hover {
+            background-color: #27d359;
+        }
+
+        .serialInput { 
             width: 245px;
             height: 50px;
             margin-left: 4px;
@@ -65,13 +93,56 @@
             border-radius: 10px;
             border: 1px solid #838383;
             background-color: #e7e7e7;
-            -webkit-box-shadow: #B3B3B3 5px 5px 5px;
-            -moz-box-shadow: #B3B3B3 5px 5px 5px;
-            box-shadow: #B3B3B3 5px 5px 5px;
+            -webkit-box-shadow: #B3B3B3 4px 4px 4px;
+            -moz-box-shadow: #B3B3B3 4px 4px 4px;
+            box-shadow: #B3B3B3 4px 4px 4px;
             color: #4a4a4a;
             font-size: 1.5em;
             font-family: Courier New;
             text-align: center;
         }
     </style>
+}
+
+@section scripts {
+    <script type="text/javascript">
+        $(function() {
+            $('#btnKey1').click(function() {
+                $('#serialNumber').val($('#serialNumber').val() + '1');
+            });
+            $('#btnKey2').click(function() {
+                $('#serialNumber').val($('#serialNumber').val() + '2');
+            });
+            $('#btnKey3').click(function() {
+                $('#serialNumber').val($('#serialNumber').val() + '3');
+            });
+            $('#btnKey4').click(function() {
+                $('#serialNumber').val($('#serialNumber').val() + '4');
+            });
+            $('#btnKey5').click(function() {
+                $('#serialNumber').val($('#serialNumber').val() + '5');
+            });
+            $('#btnKey6').click(function() {
+                $('#serialNumber').val($('#serialNumber').val() + '6');
+            });
+            $('#btnKey7').click(function() {
+                $('#serialNumber').val($('#serialNumber').val() + '7');
+            });
+            $('#btnKey8').click(function() {
+                $('#serialNumber').val($('#serialNumber').val() + '8');
+            });
+            $('#btnKey9').click(function() {
+                $('#serialNumber').val($('#serialNumber').val() + '9');
+            });
+            $('#btnKey0').click(function() {
+                $('#serialNumber').val($('#serialNumber').val() + '0');
+            });
+            $('#btnKeyErase').click(function() {
+                $('#serialNumber').val('');
+            });
+            $('#btnKeySubmit').click(function() {
+                //TODO: Submit the serial number
+            });
+        });
+    </script>
 }
