@@ -17,4 +17,27 @@ else
     <p>@Model.Narrative</p>
 
     <h2>How to diffuse this bomb:</h2>
+
+    foreach (var wireCount in Model.Rules.Select(r => r.NumberOfWires).Distinct().OrderBy(r => r))
+    {
+        <h2>@wireCount Wires:</h2>
+        <ul>
+            @{ var ruleCount = 1; }
+            @foreach (var rule in Model.Rules.Where(r => r.NumberOfWires == wireCount).OrderBy(r => r.RuleIndex))
+            {
+                <li>
+                    @if (ruleCount == 1)
+                    {
+                        @: If @rule.RuleText
+                    }
+                    else
+                    {
+                        @: Otherwise, if @rule.RuleText
+                    }
+                </li>
+                ruleCount++;
+            }
+            <li>Otherwise, @Model.FallThroughRuleText</li>
+        </ul>
+    }
 }

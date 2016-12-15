@@ -23,6 +23,7 @@ namespace AlexaSkillsService.ORM
             modelBuilder.Conventions.Remove<PluralizingTableNameConvention>();
             modelBuilder.Configurations.Add(new GameConfiguration());
             modelBuilder.Configurations.Add(new NarrativeConfiguration());
+            modelBuilder.Configurations.Add(new RuleConfiguration());
         }  
     }
 }

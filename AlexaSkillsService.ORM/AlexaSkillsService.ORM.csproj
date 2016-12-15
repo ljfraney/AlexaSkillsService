@@ -54,6 +54,7 @@
     <Compile Include="AlexaSkillsContext.cs" />
     <Compile Include="DontBlowUp\GameConfiguration.cs" />
     <Compile Include="DontBlowUp\NarrativeConfiguration.cs" />
+    <Compile Include="DontBlowUp\RuleConfiguration.cs" />
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

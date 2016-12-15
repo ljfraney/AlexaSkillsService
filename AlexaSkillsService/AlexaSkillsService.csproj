@@ -180,6 +180,9 @@
   <ItemGroup>
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
+    <Content Include="Content\Images\BombSuitCutout.jpg" />
+    <Content Include="Content\Images\BombSuitOriginal.jpg" />
+    <Content Include="Content\Images\BombSuitStamp.jpg" />
     <Content Include="Content\Site.css" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />

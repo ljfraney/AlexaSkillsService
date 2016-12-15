@@ -59,6 +59,7 @@
     <Compile Include="Attributes.cs" />
     <Compile Include="Card.cs" />
     <Compile Include="DontBlowUp\Game.cs" />
+    <Compile Include="DontBlowUp\Rule.cs" />
     <Compile Include="Image.cs" />
     <Compile Include="Intent.cs" />
     <Compile Include="OutputSpeech.cs" />
@@ -72,6 +73,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AlexaSkillsService.Data\AlexaSkillsService.Data.csproj">
+      <Project>{b46044c0-ebda-4a7a-8479-b9ed63fcfdcb}</Project>
+      <Name>AlexaSkillsService.Data</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
