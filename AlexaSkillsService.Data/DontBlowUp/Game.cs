@@ -8,7 +8,7 @@ namespace AlexaSkillsService.Data.DontBlowUp
     {
         public Game()
         {
-            Rules = new HashSet<Rule>();
+            RuleSets = new HashSet<RuleSet>();
         }
 
         public int GameId { get; set; }
@@ -27,13 +27,8 @@ namespace AlexaSkillsService.Data.DontBlowUp
 
         public int NarrativeId { get; set; }
 
-        //FallThroughWirePosition should never be greater than NumberOfWires.
-        public int FallThroughWirePosition { get; set; }
-
-        public string FallThroughRuleText { get; set; }
-
         public virtual Narrative Narrative { get; set; }
 
-        public virtual ICollection<Rule> Rules { get; set; }
+        public virtual ICollection<RuleSet> RuleSets { get; set; }
     }
 }

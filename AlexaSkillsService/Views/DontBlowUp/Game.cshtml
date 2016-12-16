@@ -18,12 +18,12 @@ else
 
     <h2>How to diffuse this bomb:</h2>
 
-    foreach (var wireCount in Model.Rules.Select(r => r.NumberOfWires).Distinct().OrderBy(r => r))
+    foreach (var ruleSet in Model.RuleSets.OrderBy(rs => rs.NumberOfWires))
     {
-        <h2>@wireCount Wires:</h2>
+        <h2>@ruleSet.NumberOfWires Wires:</h2>
         <ul>
             @{ var ruleCount = 1; }
-            @foreach (var rule in Model.Rules.Where(r => r.NumberOfWires == wireCount).OrderBy(r => r.RuleIndex))
+            @foreach (var rule in ruleSet.Rules.OrderBy(r => r.RuleIndex))
             {
                 <li>
                     @if (ruleCount == 1)
@@ -37,7 +37,7 @@ else
                 </li>
                 ruleCount++;
             }
-            <li>Otherwise, @Model.FallThroughRuleText</li>
+            <li>Otherwise, @ruleSet.FallThroughRuleText</li>
         </ul>
     }
 }

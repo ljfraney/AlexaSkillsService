@@ -4,11 +4,6 @@
     {
         public int RuleId { get; set; }
 
-        public int GameId { get; set; }
-
-        //NumberOfWires should be greater than zero, and not greater than NumberOfWires on the Game.
-        public int NumberOfWires { get; set; }
-
         public int RuleIndex { get; set; }
 
         public WireColor WireColor { get; set; }

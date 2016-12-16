@@ -23,42 +23,21 @@ namespace AlexaSkillsService.Common
             const int maxWireCount = 6;
 
             var maxNarrativeId = _alexaSkillsContext.Narratives.Max(n => n.NarrativeId);
-            var randomNarrativeId = RandomHelper.Instance.Next(1, maxNarrativeId);
+            var randomNarrativeId = RandomHelper.Instance.Next(1, maxNarrativeId + 1);
             var narrative = _alexaSkillsContext.Narratives.Single(n => n.NarrativeId == randomNarrativeId);
 
             var game = new Game
             {
-                SerialNumber = RandomHelper.Instance.Next(10000, 99999),
-                NumberOfWires = RandomHelper.Instance.Next(minWireCount, maxWireCount),
+                SerialNumber = RandomHelper.Instance.Next(10000, 100000), //Max will be 99999
+                NumberOfWires = RandomHelper.Instance.Next(minWireCount, maxWireCount + 1),
                 NarrativeId = randomNarrativeId,
                 DateCreated = DateTime.UtcNow,
                 SessionId = sessionId,
                 UserId = userId
             };
-
-            game.FallThroughWirePosition = RandomHelper.Instance.Next(1, game.NumberOfWires);
-
-            //Set the text for the fall-through rule.
-            if (game.FallThroughWirePosition == 1)
-                game.FallThroughRuleText = "cut the first wire.";
-            else if (game.FallThroughWirePosition == game.NumberOfWires)
-            {
-                //If the fall-through wire position is the last wire, 50% of the time it will read "cut the last wire",
-                //and 50% of the time, it will say "cut the Nth wire".
-                if (RandomHelper.Instance.Next(0, 1) == 0)
-                    game.FallThroughRuleText = "cut the last wire.";
-                else
-                    game.FallThroughRuleText = $"cut the {game.FallThroughWirePosition.GetOrdinal()} wire.";
-            }
-            else
-                game.FallThroughRuleText = $"cut the {game.FallThroughWirePosition.GetOrdinal()} wire.";
-
+            
             for (var i = minWireCount; i <= maxWireCount; i++)
-            {
-                var ruleSet = GetRandomRuleSet(i);
-                foreach (var rule in ruleSet)
-                    game.Rules.Add(rule);
-            }
+                game.RuleSets.Add(GetRandomRuleSet(i));
 
             _alexaSkillsContext.Games.Add(game);
             _alexaSkillsContext.SaveChanges();
@@ -70,18 +49,20 @@ namespace AlexaSkillsService.Common
                 NumberOfWires = game.NumberOfWires,
                 DateCreated = game.DateCreated,
                 Narrative = narrative.Text,
-                FallThroughWirePosition = game.FallThroughWirePosition,
-                FallThroughRuleText = game.FallThroughRuleText,
-                Rules = game.Rules.Select(r => new Models.DontBlowUp.Rule
-                {
-                    NumberOfWires = r.NumberOfWires,
-                    RuleIndex = r.RuleIndex,
-                    IsPosition = r.IsPosition,
-                    WireColor = r.WireColor,
-                    Operator = r.Operator,
-                    RuleText = r.RuleText,
-                    WirePositionOrCount = r.WirePositionOrCount,
-                    WireToCutPosition = r.WireToCutPosition
+                RuleSets = game.RuleSets.Select(rs => new Models.DontBlowUp.RuleSet {
+                    NumberOfWires = rs.NumberOfWires,
+                    FallThroughWirePosition = rs.FallThroughWirePosition,
+                    FallThroughRuleText = rs.FallThroughRuleText,
+                    Rules = rs.Rules.Select(r => new Models.DontBlowUp.Rule
+                    {
+                        RuleIndex = r.RuleIndex,
+                        IsPosition = r.IsPosition,
+                        WireColor = r.WireColor,
+                        Operator = r.Operator,
+                        RuleText = r.RuleText,
+                        WirePositionOrCount = r.WirePositionOrCount,
+                        WireToCutPosition = r.WireToCutPosition
+                    }).ToList()
                 }).ToList()
             };
         }
@@ -95,7 +76,7 @@ namespace AlexaSkillsService.Common
             var fiveMinutesAgo = DateTime.UtcNow.AddMinutes(-5.0);
             var dbGame = _alexaSkillsContext.Games
                 .Where(g => g.SerialNumber == iSerialNumber && g.DateCreated >= fiveMinutesAgo && g.DateCompleted == null)
-                .Include(g => g.Rules)
+                .Include(g => g.RuleSets.Select(rs => rs.Rules))
                 .Include(g => g.Narrative).FirstOrDefault();
 
             if (dbGame != null)
@@ -106,27 +87,50 @@ namespace AlexaSkillsService.Common
                     NumberOfWires = dbGame.NumberOfWires,
                     DateCreated = dbGame.DateCreated,
                     Narrative = dbGame.Narrative.Text,
-                    FallThroughWirePosition = dbGame.FallThroughWirePosition,
-                    FallThroughRuleText = dbGame.FallThroughRuleText,
-                    Rules = dbGame.Rules.Select(r => new Models.DontBlowUp.Rule
+                    RuleSets = dbGame.RuleSets.Select(rs => new Models.DontBlowUp.RuleSet
                     {
-                        NumberOfWires = r.NumberOfWires,
-                        RuleIndex = r.RuleIndex,
-                        IsPosition = r.IsPosition,
-                        WireColor = r.WireColor,
-                        Operator = r.Operator,
-                        RuleText = r.RuleText,
-                        WirePositionOrCount = r.WirePositionOrCount,
-                        WireToCutPosition = r.WireToCutPosition
+                        NumberOfWires = rs.NumberOfWires,
+                        FallThroughWirePosition = rs.FallThroughWirePosition,
+                        FallThroughRuleText = rs.FallThroughRuleText,
+                        Rules = rs.Rules.Select(r => new Models.DontBlowUp.Rule
+                        {
+                            RuleIndex = r.RuleIndex,
+                            IsPosition = r.IsPosition,
+                            WireColor = r.WireColor,
+                            Operator = r.Operator,
+                            RuleText = r.RuleText,
+                            WirePositionOrCount = r.WirePositionOrCount,
+                            WireToCutPosition = r.WireToCutPosition
+                        }).ToList()
                     }).ToList()
                 };
 
             return null;
         }
 
-        public List<Rule> GetRandomRuleSet(int wireCount)
+        public RuleSet GetRandomRuleSet(int wireCount)
         {
-            var rules = new List<Rule>();
+            var ruleSet = new RuleSet
+            {
+                NumberOfWires = wireCount,
+                FallThroughWirePosition = RandomHelper.Instance.Next(1, wireCount + 1)
+            };
+
+            //Set the text for the fall-through rule.
+            if (ruleSet.FallThroughWirePosition == 1)
+                ruleSet.FallThroughRuleText = "cut the first wire.";
+            else if (ruleSet.FallThroughWirePosition == wireCount)
+            {
+                //If the fall-through wire position is the last wire, 50% of the time it will read "cut the last wire",
+                //and 50% of the time, it will say "cut the Nth wire".
+                if (RandomHelper.Instance.Next(0, 2) == 0)
+                    ruleSet.FallThroughRuleText = "cut the last wire.";
+                else
+                    ruleSet.FallThroughRuleText = $"cut the {ruleSet.FallThroughWirePosition.GetOrdinal()} wire.";
+            }
+            else
+                ruleSet.FallThroughRuleText = $"cut the {ruleSet.FallThroughWirePosition.GetOrdinal()} wire.";
+            
             var wireColorList = Enum.GetValues(typeof(WireColor)).Cast<int>().ToList();
             wireColorList.Shuffle();
 
@@ -134,11 +138,10 @@ namespace AlexaSkillsService.Common
             {
                 var rule = new Rule
                 {
-                    NumberOfWires = wireCount,
                     RuleIndex = ruleIndex,
                     WireColor = (WireColor)wireColorList[ruleIndex],
-                    IsPosition = RandomHelper.Instance.Next(0, 1) == 0,
-                    WireToCutPosition = RandomHelper.Instance.Next(1, wireCount)
+                    IsPosition = RandomHelper.Instance.Next(0, 2) == 0,
+                    WireToCutPosition = RandomHelper.Instance.Next(1, wireCount + 1)
                 };
 
                 var ruleText = new StringBuilder();
@@ -148,15 +151,15 @@ namespace AlexaSkillsService.Common
                 //of NumberOfWires. This way we will never have a rule that says "If there are 6 black wires..."
                 if (rule.IsPosition)
                 {
-                    rule.WirePositionOrCount = RandomHelper.Instance.Next(1, wireCount);
+                    rule.WirePositionOrCount = RandomHelper.Instance.Next(1, wireCount + 1);
                     ruleText.Append($"the {rule.WirePositionOrCount.GetOrdinal()} wire is {rule.WireColor.ToString().ToLower()}, ");
                 }
                 else
                 {
-                    rule.WirePositionOrCount = RandomHelper.Instance.Next(0, (int)Math.Ceiling(wireCount/2.0));
+                    rule.WirePositionOrCount = RandomHelper.Instance.Next(0, (int)Math.Ceiling(wireCount/2.0) + 1);
 
                     if (rule.WirePositionOrCount > 1) //Set a random operator (<, <=, ==, >=, >) if the count is greater than one.
-                        rule.Operator = (WireCountOperator)RandomHelper.Instance.Next(1, Enum.GetValues(typeof(WireCountOperator)).Length);
+                        rule.Operator = (WireCountOperator)RandomHelper.Instance.Next(1, Enum.GetValues(typeof(WireCountOperator)).Length + 1);
                     else if (rule.WirePositionOrCount == 1) //Only use ==, >=, or > if the count is one.
                     {
                         var validOperators = new List<WireCountOperator> { WireCountOperator.EqualTo, WireCountOperator.GreaterThanOrEqualTo, WireCountOperator.GreaterThan };
@@ -212,11 +215,11 @@ namespace AlexaSkillsService.Common
 
                 if (rule.WireToCutPosition == 1)
                     ruleText.Append("cut the first wire.");
-                else if (rule.WireToCutPosition == rule.NumberOfWires)
+                else if (rule.WireToCutPosition == wireCount)
                 {
                     //If the fall-through wire position is the last wire, 50% of the time it will read "cut the last wire",
                     //and 50% of the time, it will say "cut the Nth wire".
-                    if (RandomHelper.Instance.Next(0, 1) == 0)
+                    if (RandomHelper.Instance.Next(0, 2) == 0)
                         ruleText.Append("cut the last wire.");
                     else
                         ruleText.Append($"cut the {rule.WireToCutPosition.GetOrdinal()} wire.");
@@ -225,10 +228,10 @@ namespace AlexaSkillsService.Common
                     ruleText.Append($"cut the {rule.WireToCutPosition.GetOrdinal()} wire.");
 
                 rule.RuleText = ruleText.ToString();
-                rules.Add(rule);
+                ruleSet.Rules.Add(rule);
             }
 
-            return rules;
+            return ruleSet;
         }
     }
 }

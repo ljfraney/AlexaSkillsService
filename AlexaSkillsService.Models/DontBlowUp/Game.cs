@@ -15,10 +15,6 @@ namespace AlexaSkillsService.Models.DontBlowUp
 
         public string Narrative { get; set; }
 
-        public List<Rule> Rules { get; set; }
-
-        public int FallThroughWirePosition { get; set; }
-
-        public string FallThroughRuleText { get; set; }
+        public List<RuleSet> RuleSets { get; set; }
     }
 }
