@@ -236,6 +236,7 @@
     <Content Include="Views\DontBlowUp\Test.cshtml" />
     <Content Include="Views\DontBlowUp\Test2.cshtml" />
     <Content Include="Views\DontBlowUp\Game.cshtml" />
+    <Content Include="Views\DontBlowUp\Result.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

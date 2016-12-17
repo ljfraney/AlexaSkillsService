@@ -56,6 +56,7 @@
     <Compile Include="DontBlowUp\NarrativeConfiguration.cs" />
     <Compile Include="DontBlowUp\RuleConfiguration.cs" />
     <Compile Include="DontBlowUp\RuleSetConfiguration.cs" />
+    <Compile Include="DontBlowUp\WireConfiguration.cs" />
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

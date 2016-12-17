@@ -2,7 +2,12 @@
 
 namespace AlexaSkillsService.Data.DontBlowUp
 {
-    // ReSharper disable once DoNotCallOverridableMethodsInConstructor
+    // ReSharper disable AutoPropertyCanBeMadeGetOnly.Global
+    // ReSharper disable ClassWithVirtualMembersNeverInherited.Global
+    // ReSharper disable DoNotCallOverridableMethodsInConstructor
+    // ReSharper disable MemberCanBeProtected.Global
+    // ReSharper disable UnusedAutoPropertyAccessor.Global
+    // ReSharper disable UnusedMember.Global
     public class RuleSet
     {
         public RuleSet()

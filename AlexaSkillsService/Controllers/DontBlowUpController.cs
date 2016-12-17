@@ -33,8 +33,16 @@ namespace AlexaSkillsService.Controllers
         [HttpPost]
         public ActionResult GoToGame(string serialNumber)
         {
-            var savedGame = _dontBlowUpGameManager.GetGameBySerialNumber(serialNumber);
-            return View("Game", savedGame);
+            var game = _dontBlowUpGameManager.StartGame(serialNumber, 5.0);
+            return View("Game", game);
+        }
+
+        [HttpPost]
+        public ActionResult Solve(int gameId, int wireToCut)
+        {
+            //TODO: Encrypt gameId.
+            var game = _dontBlowUpGameManager.Solve(gameId, wireToCut);
+            return View("Result", game);
         }
     }
 }

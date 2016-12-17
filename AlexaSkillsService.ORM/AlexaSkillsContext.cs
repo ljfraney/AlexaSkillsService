@@ -25,6 +25,7 @@ namespace AlexaSkillsService.ORM
             modelBuilder.Configurations.Add(new NarrativeConfiguration());
             modelBuilder.Configurations.Add(new RuleConfiguration());
             modelBuilder.Configurations.Add(new RuleSetConfiguration());
+            modelBuilder.Configurations.Add(new WireConfiguration());
         }  
     }
 }

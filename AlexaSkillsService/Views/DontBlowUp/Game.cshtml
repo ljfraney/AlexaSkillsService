@@ -16,7 +16,22 @@ else
 
     <p>@Model.Narrative</p>
 
-    <h2>How to diffuse this bomb:</h2>
+    <h2>Seconds to Solve: @Model.SecondsToSolve</h2>
+
+    <h2>Wires:</h2>
+
+    foreach (var wire in Model.Wires.OrderBy(w => w.SortOrder))
+    {
+        using (Html.BeginForm("Solve", "DontBlowUp", FormMethod.Post))
+        {
+            <input type="hidden" name="wireToCut" value="@wire.SortOrder"/>
+            <input type="hidden" name="gameId" value="@Model.GameId"/>
+            @wire.SortOrder
+            <button type="submit" class="btn btn-primary" style="background-color: @wire.Color; display: inline; width: 150px; height: 10px; margin-bottom: 5px;">&nbsp;</button>
+        }
+    }
+
+    <h2>How to Defuse This Bomb...</h2>
 
     foreach (var ruleSet in Model.RuleSets.OrderBy(rs => rs.NumberOfWires))
     {
@@ -28,16 +43,16 @@ else
                 <li>
                     @if (ruleCount == 1)
                     {
-                        @: If @rule.RuleText
+                        @:If @rule.RuleText
                     }
                     else
                     {
-                        @: Otherwise, if @rule.RuleText
+                        @:otherwise, if @rule.RuleText,
                     }
                 </li>
                 ruleCount++;
             }
-            <li>Otherwise, @ruleSet.FallThroughRuleText</li>
+            <li>otherwise, @ruleSet.FallThroughRuleText.</li>
         </ul>
     }
 }

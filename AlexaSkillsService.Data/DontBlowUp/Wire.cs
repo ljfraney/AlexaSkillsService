@@ -6,12 +6,14 @@
     // ReSharper disable MemberCanBeProtected.Global
     // ReSharper disable UnusedAutoPropertyAccessor.Global
     // ReSharper disable UnusedMember.Global
-    public class Narrative
+    public class Wire
     {
-        public int NarrativeId { get; set; }
+        public int GameId { get; set; }
 
-        public string Key { get; set; }
+        public int SortOrder { get; set; }
 
-        public string Text { get; set; }
+        public WireColor Color { get; set; }
+
+        public virtual Game Game { get; set; }
     }
 }

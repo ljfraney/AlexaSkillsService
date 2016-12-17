@@ -1,8 +1,9 @@
-﻿using AlexaSkillsService.Data.DontBlowUp;
-using AlexaSkillsService.Interfaces;
+﻿using AlexaSkillsService.Interfaces;
+using AlexaSkillsService.Models.DontBlowUp;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -17,7 +18,7 @@ namespace AlexaSkillsService.Common
             _alexaSkillsContext = alexaSkillsContext;
         }
 
-        public Models.DontBlowUp.Game CreateGame(string sessionId, string userId)
+        public Game CreateGame(string sessionId, string userId)
         {
             const int minWireCount = 3;
             const int maxWireCount = 6;
@@ -26,15 +27,27 @@ namespace AlexaSkillsService.Common
             var randomNarrativeId = RandomHelper.Instance.Next(1, maxNarrativeId + 1);
             var narrative = _alexaSkillsContext.Narratives.Single(n => n.NarrativeId == randomNarrativeId);
 
-            var game = new Game
+            var game = new Data.DontBlowUp.Game
             {
                 SerialNumber = RandomHelper.Instance.Next(10000, 100000), //Max will be 99999
-                NumberOfWires = RandomHelper.Instance.Next(minWireCount, maxWireCount + 1),
                 NarrativeId = randomNarrativeId,
-                DateCreated = DateTime.UtcNow,
+                TimeCreated = DateTime.UtcNow,
+                SecondsToSolve = 60,
                 SessionId = sessionId,
                 UserId = userId
             };
+
+            //Add Wires
+            var numberOfWires = RandomHelper.Instance.Next(minWireCount, maxWireCount + 1);
+            for (var i = 1; i <= numberOfWires; i++)
+            {
+                var wire = new Data.DontBlowUp.Wire
+                {
+                    SortOrder = i,
+                    Color = (Data.DontBlowUp.WireColor)RandomHelper.Instance.Next(1, Enum.GetValues(typeof(Data.DontBlowUp.WireColor)).Length + 1)
+                };
+                game.Wires.Add(wire);
+            }
             
             for (var i = minWireCount; i <= maxWireCount; i++)
                 game.RuleSets.Add(GetRandomRuleSet(i));
@@ -42,75 +55,34 @@ namespace AlexaSkillsService.Common
             _alexaSkillsContext.Games.Add(game);
             _alexaSkillsContext.SaveChanges();
 
-            return new Models.DontBlowUp.Game
-            {
-                GameId = game.GameId,
-                SerialNumber = game.SerialNumber,
-                NumberOfWires = game.NumberOfWires,
-                DateCreated = game.DateCreated,
-                Narrative = narrative.Text,
-                RuleSets = game.RuleSets.Select(rs => new Models.DontBlowUp.RuleSet {
-                    NumberOfWires = rs.NumberOfWires,
-                    FallThroughWirePosition = rs.FallThroughWirePosition,
-                    FallThroughRuleText = rs.FallThroughRuleText,
-                    Rules = rs.Rules.Select(r => new Models.DontBlowUp.Rule
-                    {
-                        RuleIndex = r.RuleIndex,
-                        IsPosition = r.IsPosition,
-                        WireColor = r.WireColor,
-                        Operator = r.Operator,
-                        RuleText = r.RuleText,
-                        WirePositionOrCount = r.WirePositionOrCount,
-                        WireToCutPosition = r.WireToCutPosition
-                    }).ToList()
-                }).ToList()
-            };
+            var gameModel = game.ToModel();
+            gameModel.Narrative = narrative.Text;
+            return gameModel;
         }
 
-        public Models.DontBlowUp.Game GetGameBySerialNumber(string serialNumber)
+        public Game StartGame(string serialNumber, double minutesToOpenGame)
         {
             int iSerialNumber;
             if (!int.TryParse(serialNumber, out iSerialNumber))
                 return null;
 
-            var fiveMinutesAgo = DateTime.UtcNow.AddMinutes(-5.0);
-            var dbGame = _alexaSkillsContext.Games
-                .Where(g => g.SerialNumber == iSerialNumber && g.DateCreated >= fiveMinutesAgo && g.DateCompleted == null)
+            var fiveMinutesAgo = DateTime.UtcNow.AddMinutes(-minutesToOpenGame);
+            var game = _alexaSkillsContext.Games
+                .Where(g => g.SerialNumber == iSerialNumber && g.TimeCreated >= fiveMinutesAgo && g.TimeCompleted == null)
                 .Include(g => g.RuleSets.Select(rs => rs.Rules))
-                .Include(g => g.Narrative).FirstOrDefault();
+                .Include(g => g.Narrative)
+                .Include(g => g.Wires).FirstOrDefault();
 
-            if (dbGame != null)
-                return new Models.DontBlowUp.Game
-                {
-                    GameId = dbGame.GameId,
-                    SerialNumber = dbGame.SerialNumber,
-                    NumberOfWires = dbGame.NumberOfWires,
-                    DateCreated = dbGame.DateCreated,
-                    Narrative = dbGame.Narrative.Text,
-                    RuleSets = dbGame.RuleSets.Select(rs => new Models.DontBlowUp.RuleSet
-                    {
-                        NumberOfWires = rs.NumberOfWires,
-                        FallThroughWirePosition = rs.FallThroughWirePosition,
-                        FallThroughRuleText = rs.FallThroughRuleText,
-                        Rules = rs.Rules.Select(r => new Models.DontBlowUp.Rule
-                        {
-                            RuleIndex = r.RuleIndex,
-                            IsPosition = r.IsPosition,
-                            WireColor = r.WireColor,
-                            Operator = r.Operator,
-                            RuleText = r.RuleText,
-                            WirePositionOrCount = r.WirePositionOrCount,
-                            WireToCutPosition = r.WireToCutPosition
-                        }).ToList()
-                    }).ToList()
-                };
+            Debug.Assert(game != null, "game != null");
+            game.TimeStarted = DateTime.UtcNow;
+            _alexaSkillsContext.SaveChanges();
 
-            return null;
+            return game?.ToModel();
         }
-
-        public RuleSet GetRandomRuleSet(int wireCount)
+            
+        private Data.DontBlowUp.RuleSet GetRandomRuleSet(int wireCount)
         {
-            var ruleSet = new RuleSet
+            var ruleSet = new Data.DontBlowUp.RuleSet
             {
                 NumberOfWires = wireCount,
                 FallThroughWirePosition = RandomHelper.Instance.Next(1, wireCount + 1)
@@ -118,28 +90,28 @@ namespace AlexaSkillsService.Common
 
             //Set the text for the fall-through rule.
             if (ruleSet.FallThroughWirePosition == 1)
-                ruleSet.FallThroughRuleText = "cut the first wire.";
+                ruleSet.FallThroughRuleText = "cut the first wire";
             else if (ruleSet.FallThroughWirePosition == wireCount)
             {
                 //If the fall-through wire position is the last wire, 50% of the time it will read "cut the last wire",
                 //and 50% of the time, it will say "cut the Nth wire".
                 if (RandomHelper.Instance.Next(0, 2) == 0)
-                    ruleSet.FallThroughRuleText = "cut the last wire.";
+                    ruleSet.FallThroughRuleText = "cut the last wire";
                 else
-                    ruleSet.FallThroughRuleText = $"cut the {ruleSet.FallThroughWirePosition.GetOrdinal()} wire.";
+                    ruleSet.FallThroughRuleText = $"cut the {ruleSet.FallThroughWirePosition.GetOrdinal()} wire";
             }
             else
-                ruleSet.FallThroughRuleText = $"cut the {ruleSet.FallThroughWirePosition.GetOrdinal()} wire.";
+                ruleSet.FallThroughRuleText = $"cut the {ruleSet.FallThroughWirePosition.GetOrdinal()} wire";
             
-            var wireColorList = Enum.GetValues(typeof(WireColor)).Cast<int>().ToList();
+            var wireColorList = Enum.GetValues(typeof(Data.DontBlowUp.WireColor)).Cast<int>().ToList();
             wireColorList.Shuffle();
 
             for (var ruleIndex = 0; ruleIndex < 5; ruleIndex++)
             {
-                var rule = new Rule
+                var rule = new Data.DontBlowUp.Rule
                 {
                     RuleIndex = ruleIndex,
-                    WireColor = (WireColor)wireColorList[ruleIndex],
+                    WireColor = (Data.DontBlowUp.WireColor)wireColorList[ruleIndex],
                     IsPosition = RandomHelper.Instance.Next(0, 2) == 0,
                     WireToCutPosition = RandomHelper.Instance.Next(1, wireCount + 1)
                 };
@@ -159,10 +131,10 @@ namespace AlexaSkillsService.Common
                     rule.WirePositionOrCount = RandomHelper.Instance.Next(0, (int)Math.Ceiling(wireCount/2.0) + 1);
 
                     if (rule.WirePositionOrCount > 1) //Set a random operator (<, <=, ==, >=, >) if the count is greater than one.
-                        rule.Operator = (WireCountOperator)RandomHelper.Instance.Next(1, Enum.GetValues(typeof(WireCountOperator)).Length + 1);
+                        rule.Operator = (Data.DontBlowUp.WireCountOperator)RandomHelper.Instance.Next(1, Enum.GetValues(typeof(Data.DontBlowUp.WireCountOperator)).Length + 1);
                     else if (rule.WirePositionOrCount == 1) //Only use ==, >=, or > if the count is one.
                     {
-                        var validOperators = new List<WireCountOperator> { WireCountOperator.EqualTo, WireCountOperator.GreaterThanOrEqualTo, WireCountOperator.GreaterThan };
+                        var validOperators = new List<Data.DontBlowUp.WireCountOperator> { Data.DontBlowUp.WireCountOperator.EqualTo, Data.DontBlowUp.WireCountOperator.GreaterThanOrEqualTo, Data.DontBlowUp.WireCountOperator.GreaterThan };
                         validOperators.Shuffle();
                         rule.Operator = validOperators[0];
                     }
@@ -175,13 +147,13 @@ namespace AlexaSkillsService.Common
                     {
                         switch (rule.Operator)
                         {
-                            case WireCountOperator.EqualTo:
+                            case Data.DontBlowUp.WireCountOperator.EqualTo:
                                 ruleText.Append($"there is exactly one {rule.WireColor.ToString().ToLower()} wire, ");
                                 break;
-                            case WireCountOperator.GreaterThanOrEqualTo:
-                                ruleText.Append($"there are one or more {rule.WireColor.ToString().ToLower()} wires, ");
+                            case Data.DontBlowUp.WireCountOperator.GreaterThanOrEqualTo:
+                                ruleText.Append($"there are any {rule.WireColor.ToString().ToLower()} wires, ");
                                 break;
-                            case WireCountOperator.GreaterThan:
+                            case Data.DontBlowUp.WireCountOperator.GreaterThan:
                                 ruleText.Append($"there is more than one {rule.WireColor.ToString().ToLower()} wire, ");
                                 break;
                             default:
@@ -192,19 +164,19 @@ namespace AlexaSkillsService.Common
                     {
                         switch (rule.Operator)
                         {
-                            case WireCountOperator.LessThan:
+                            case Data.DontBlowUp.WireCountOperator.LessThan:
                                 ruleText.Append($"there are fewer than {rule.WirePositionOrCount} {rule.WireColor.ToString().ToLower()} wires, ");
                                 break;
-                            case WireCountOperator.LessThanOrEqualTo:
+                            case Data.DontBlowUp.WireCountOperator.LessThanOrEqualTo:
                                 ruleText.Append($"there are {rule.WirePositionOrCount} or less {rule.WireColor.ToString().ToLower()} wires, ");
                                 break;
-                            case WireCountOperator.EqualTo:
+                            case Data.DontBlowUp.WireCountOperator.EqualTo:
                                 ruleText.Append($"there are exactly {rule.WirePositionOrCount} {rule.WireColor.ToString().ToLower()} wires, ");
                                 break;
-                            case WireCountOperator.GreaterThanOrEqualTo:
+                            case Data.DontBlowUp.WireCountOperator.GreaterThanOrEqualTo:
                                 ruleText.Append($"there are at least {rule.WirePositionOrCount} {rule.WireColor.ToString().ToLower()} wires, ");
                                 break;
-                            case WireCountOperator.GreaterThan:
+                            case Data.DontBlowUp.WireCountOperator.GreaterThan:
                                 ruleText.Append($"there are more than {rule.WirePositionOrCount} {rule.WireColor.ToString().ToLower()} wires, ");
                                 break;
                             default:
@@ -214,24 +186,95 @@ namespace AlexaSkillsService.Common
                 }
 
                 if (rule.WireToCutPosition == 1)
-                    ruleText.Append("cut the first wire.");
+                    ruleText.Append("cut the first wire");
                 else if (rule.WireToCutPosition == wireCount)
                 {
                     //If the fall-through wire position is the last wire, 50% of the time it will read "cut the last wire",
                     //and 50% of the time, it will say "cut the Nth wire".
                     if (RandomHelper.Instance.Next(0, 2) == 0)
-                        ruleText.Append("cut the last wire.");
+                        ruleText.Append("cut the last wire");
                     else
-                        ruleText.Append($"cut the {rule.WireToCutPosition.GetOrdinal()} wire.");
+                        ruleText.Append($"cut the {rule.WireToCutPosition.GetOrdinal()} wire");
                 }
                 else
-                    ruleText.Append($"cut the {rule.WireToCutPosition.GetOrdinal()} wire.");
+                    ruleText.Append($"cut the {rule.WireToCutPosition.GetOrdinal()} wire");
 
                 rule.RuleText = ruleText.ToString();
                 ruleSet.Rules.Add(rule);
             }
 
             return ruleSet;
+        }
+
+        public Game Solve(int gameId, int wireToCut)
+        {
+            var timeCompleted = DateTime.UtcNow;
+
+            var game = _alexaSkillsContext.Games
+                .Where(g => g.GameId == gameId)
+                .Include(g => g.RuleSets.Select(rs => rs.Rules))
+                .Include(g => g.Wires).Single();
+
+            game.TimeCompleted = timeCompleted;
+
+            Debug.Assert(game.TimeStarted != null, "game.TimeStarted != null");
+            if ((timeCompleted - game.TimeStarted.Value).TotalSeconds > game.SecondsToSolve)
+            {
+                game.Won = false;
+                game.TimeRanOut = true;
+                _alexaSkillsContext.SaveChanges();
+                return game.ToModel();
+            }
+
+            var ruleSet = game.RuleSets.Single(rs => rs.NumberOfWires == game.Wires.Count);
+
+            var correctWire = 0;
+            foreach (var rule in ruleSet.Rules)
+            {
+                if (rule.IsPosition)
+                {
+                    var wire = game.Wires.Single(w => w.SortOrder == rule.WirePositionOrCount);
+                    if (wire.Color == rule.WireColor)
+                    {
+                        correctWire = rule.WireToCutPosition;
+                        break;
+                    }
+                }
+                else
+                {
+                    var wireCount = game.Wires.Count(w => w.Color == rule.WireColor);
+                    if (rule.Operator == Data.DontBlowUp.WireCountOperator.LessThan && wireCount < rule.WirePositionOrCount)
+                    {
+                        correctWire = rule.WireToCutPosition;
+                        break;
+                    }
+                    if (rule.Operator == Data.DontBlowUp.WireCountOperator.LessThanOrEqualTo && wireCount <= rule.WirePositionOrCount)
+                    {
+                        correctWire = rule.WireToCutPosition;
+                        break;
+                    }
+                    if (rule.Operator == Data.DontBlowUp.WireCountOperator.EqualTo && wireCount == rule.WirePositionOrCount)
+                    {
+                        correctWire = rule.WireToCutPosition;
+                        break;
+                    }
+                    if (rule.Operator == Data.DontBlowUp.WireCountOperator.GreaterThanOrEqualTo && wireCount >= rule.WirePositionOrCount)
+                    {
+                        correctWire = rule.WireToCutPosition;
+                        break;
+                    }
+                    if (rule.Operator == Data.DontBlowUp.WireCountOperator.GreaterThan && wireCount > rule.WirePositionOrCount)
+                    {
+                        correctWire = rule.WireToCutPosition;
+                        break;
+                    }
+                }
+            }
+
+            game.Won = wireToCut == correctWire;
+            game.TimeRanOut = false;
+            _alexaSkillsContext.SaveChanges();
+            return game.ToModel();
         }
     }
 }

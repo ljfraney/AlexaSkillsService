@@ -53,6 +53,7 @@
     <Compile Include="DontBlowUp\Narrative.cs" />
     <Compile Include="DontBlowUp\Rule.cs" />
     <Compile Include="DontBlowUp\RuleSet.cs" />
+    <Compile Include="DontBlowUp\Wire.cs" />
     <Compile Include="DontBlowUp\WireColor.cs" />
     <Compile Include="DontBlowUp\WireCountOperator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -9,12 +9,22 @@ namespace AlexaSkillsService.Models.DontBlowUp
 
         public int SerialNumber { get; set; }
 
-        public int NumberOfWires { get; set; }
+        public DateTime TimeCreated { get; set; }
 
-        public DateTime DateCreated { get; set; }
+        public int SecondsToSolve { get; set; }
+
+        public DateTime? TimeStarted { get; set; }
 
         public string Narrative { get; set; }
 
         public List<RuleSet> RuleSets { get; set; }
+
+        public List<Wire> Wires { get; set; }
+
+        public bool? Won { get; set; }
+
+        public bool? TimeRanOut { get; set; }
+
+        public DateTime? TimeCompleted { get; set; }
     }
 }
