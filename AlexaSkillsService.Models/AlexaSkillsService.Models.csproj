@@ -58,6 +58,7 @@
     <Compile Include="Application.cs" />
     <Compile Include="Attributes.cs" />
     <Compile Include="Card.cs" />
+    <Compile Include="DontBlowUp\Constants.cs" />
     <Compile Include="DontBlowUp\Game.cs" />
     <Compile Include="DontBlowUp\Mapper.cs" />
     <Compile Include="DontBlowUp\RuleSet.cs" />

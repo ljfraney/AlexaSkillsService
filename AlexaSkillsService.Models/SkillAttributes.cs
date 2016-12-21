@@ -1,11 +1,12 @@
 ﻿namespace AlexaSkillsService.Models
 {
+    // ReSharper disable AutoPropertyCanBeMadeGetOnly.Global
+    // ReSharper disable MemberCanBePrivate.Global
+    // ReSharper disable UnusedAutoPropertyAccessor.Global
+    // ReSharper disable UnusedMember.Global
     public class SkillAttributes
     {
-        // ReSharper disable AutoPropertyCanBeMadeGetOnly.Global
-        // ReSharper disable MemberCanBePrivate.Global
-        // ReSharper disable UnusedAutoPropertyAccessor.Global
-        // ReSharper disable UnusedMember.Global
+        //This class maps to the 
         public string LastRequestIntent { get; set; }
 
         public OutputSpeech OutputSpeech { get; set; }

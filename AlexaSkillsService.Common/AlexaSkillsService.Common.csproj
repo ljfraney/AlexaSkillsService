@@ -50,10 +50,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DontBlowUpGameManager.cs" />
+    <Compile Include="DontBlowUpRequestHandler.cs" />
     <Compile Include="ListExtender.cs" />
     <Compile Include="IntExtender.cs" />
     <Compile Include="RandomHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SafeExceptionHandler.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AlexaSkillsService.Data\AlexaSkillsService.Data.csproj">

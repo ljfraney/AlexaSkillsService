@@ -130,19 +130,33 @@ namespace AlexaSkillsService.Common
                 {
                     rule.WirePositionOrCount = RandomHelper.Instance.Next(0, (int)Math.Ceiling(wireCount/2.0) + 1);
 
-                    if (rule.WirePositionOrCount > 1) //Set a random operator (<, <=, ==, >=, >) if the count is greater than one.
-                        rule.Operator = (Data.DontBlowUp.WireCountOperator)RandomHelper.Instance.Next(1, Enum.GetValues(typeof(Data.DontBlowUp.WireCountOperator)).Length + 1);
+                    if (rule.WirePositionOrCount == 0) //Only use == or > if the count is zero.
+                    {
+                        var validOperators = new List<Data.DontBlowUp.WireCountOperator> { Data.DontBlowUp.WireCountOperator.EqualTo, Data.DontBlowUp.WireCountOperator.GreaterThan };
+                        validOperators.Shuffle();
+                        rule.Operator = validOperators[0];
+                    }
                     else if (rule.WirePositionOrCount == 1) //Only use ==, >=, or > if the count is one.
                     {
                         var validOperators = new List<Data.DontBlowUp.WireCountOperator> { Data.DontBlowUp.WireCountOperator.EqualTo, Data.DontBlowUp.WireCountOperator.GreaterThanOrEqualTo, Data.DontBlowUp.WireCountOperator.GreaterThan };
                         validOperators.Shuffle();
                         rule.Operator = validOperators[0];
                     }
-
-                    //Don't set an operator if the count is zero.
+                    else if (rule.WirePositionOrCount > 1) //Set a random operator (<, <=, ==, >=, >) if the count is greater than one.
+                        rule.Operator = (Data.DontBlowUp.WireCountOperator)RandomHelper.Instance.Next(1, Enum.GetValues(typeof(Data.DontBlowUp.WireCountOperator)).Length + 1);
 
                     if (rule.WirePositionOrCount == 0)
-                        ruleText.Append($"there are no {rule.WireColor.ToString().ToLower()} wires, ");
+                    {
+                        switch (rule.Operator)
+                        {
+                            case Data.DontBlowUp.WireCountOperator.EqualTo:
+                                ruleText.Append($"there are no {rule.WireColor.ToString().ToLower()} wires, ");
+                                break;
+                            case Data.DontBlowUp.WireCountOperator.GreaterThan:
+                                ruleText.Append($"there are any {rule.WireColor.ToString().ToLower()} wires, ");
+                                break;
+                        }
+                    }
                     else if (rule.WirePositionOrCount == 1)
                     {
                         switch (rule.Operator)
