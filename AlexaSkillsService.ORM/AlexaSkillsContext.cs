@@ -1,6 +1,6 @@
-using AlexaSkillsService.Data.DontBlowUp;
+using AlexaSkillsService.Data.BombStopper;
 using AlexaSkillsService.Interfaces;
-using AlexaSkillsService.ORM.DontBlowUp;
+using AlexaSkillsService.ORM.BombStopper;
 using System.Data.Entity;
 using System.Data.Entity.ModelConfiguration.Conventions;
 

@@ -213,7 +213,7 @@
     <Compile Include="App_Start\UnityMvcActivator.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AlexaController.cs" />
-    <Compile Include="Controllers\DontBlowUpController.cs" />
+    <Compile Include="Controllers\BombStopperController.cs" />
     <Compile Include="Filters\ExceptionFilter.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -231,12 +231,12 @@
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\web.config" />
     <Content Include="Scripts\jquery-1.10.2.min.map" />
-    <Content Include="Views\Shared\_DontBlowUp.cshtml" />
-    <Content Include="Views\DontBlowUp\Index.cshtml" />
-    <Content Include="Views\DontBlowUp\Test.cshtml" />
-    <Content Include="Views\DontBlowUp\Test2.cshtml" />
-    <Content Include="Views\DontBlowUp\Game.cshtml" />
-    <Content Include="Views\DontBlowUp\Result.cshtml" />
+    <Content Include="Views\Shared\_BombStopper.cshtml" />
+    <Content Include="Views\BombStopper\Index.cshtml" />
+    <Content Include="Views\BombStopper\Test.cshtml" />
+    <Content Include="Views\BombStopper\Test2.cshtml" />
+    <Content Include="Views\BombStopper\Game.cshtml" />
+    <Content Include="Views\BombStopper\Result.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

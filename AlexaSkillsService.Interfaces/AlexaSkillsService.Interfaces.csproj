@@ -50,7 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IAlexaSkillsContext.cs" />
-    <Compile Include="IDontBlowUpGameManager.cs" />
+    <Compile Include="IBombStopperGameManager.cs" />
     <Compile Include="ISkillRequestHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

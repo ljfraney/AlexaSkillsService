@@ -25,7 +25,7 @@ namespace AlexaSkillsService.Controllers
         //Using custom object to manage 
         private RedisCacheManager.IRedisManager _cache;
 
-        //DontBlowUp, etc.
+        //BombStopper, etc.
         private ISkillRequestHandler _skillRequestHandler;
 
         //Using cache for persiting important, yet non-permanent session related data. 
@@ -37,8 +37,6 @@ namespace AlexaSkillsService.Controllers
         public AlexaController(IAlexaSkillsContext alexaSkillsContext)
         {
             _alexaSkillsContext = alexaSkillsContext;
-
-            //TODO: Uncomment once you've researched
             //_cache = new RedisCacheManager.CacheManager(new RedisCacheManager.StackExchangeCacher(AppSettings.RedisCache));
         }
 
@@ -60,8 +58,8 @@ namespace AlexaSkillsService.Controllers
                 if (totalSeconds >= TimeStampTolerance)
                     throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest));
 
-                if (alexaRequest.Session.Application.ApplicationId == AppSettings.DontBlowUpAppId)
-                    _skillRequestHandler = new DontBlowUpRequestHandler(new DontBlowUpGameManager(_alexaSkillsContext));
+                if (alexaRequest.Session.Application.ApplicationId == AppSettings.BombStopperAppId)
+                    _skillRequestHandler = new BombStopperRequestHandler(new BombStopperGameManager(_alexaSkillsContext));
                 else
                     throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest));
 

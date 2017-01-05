@@ -52,11 +52,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AlexaSkillsContext.cs" />
-    <Compile Include="DontBlowUp\GameConfiguration.cs" />
-    <Compile Include="DontBlowUp\NarrativeConfiguration.cs" />
-    <Compile Include="DontBlowUp\RuleConfiguration.cs" />
-    <Compile Include="DontBlowUp\RuleSetConfiguration.cs" />
-    <Compile Include="DontBlowUp\WireConfiguration.cs" />
+    <Compile Include="BombStopper\GameConfiguration.cs" />
+    <Compile Include="BombStopper\NarrativeConfiguration.cs" />
+    <Compile Include="BombStopper\RuleConfiguration.cs" />
+    <Compile Include="BombStopper\RuleSetConfiguration.cs" />
+    <Compile Include="BombStopper\WireConfiguration.cs" />
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

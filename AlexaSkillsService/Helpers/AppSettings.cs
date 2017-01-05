@@ -6,6 +6,6 @@ namespace AlexaSkillsService.Helpers
     {
         public static string RedisCache = ConfigurationManager.AppSettings["RedisCache"];
 
-        public static string DontBlowUpAppId = ConfigurationManager.AppSettings["DontBlowUpAppId"];
+        public static string BombStopperAppId = ConfigurationManager.AppSettings["BombStopperAppId"];
     }
 }

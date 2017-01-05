@@ -1,0 +1,58 @@
+﻿@model AlexaSkillsService.Models.BombStopper.Game
+@{
+    ViewBag.Title = "Game";
+    Layout = "~/Views/Shared/_BombStopper.cshtml";
+}
+
+@if (Model == null)
+{
+    <h1>Bomb Not Found</h1>
+
+    <p>No recent bombs were found with the serial number entered.</p>
+}
+else
+{
+    <h1>Serial Number @Model.SerialNumber</h1>
+
+    <p>@Model.Narrative</p>
+
+    <h2>Seconds to Solve: @Model.SecondsToSolve</h2>
+
+    <h2>Wires:</h2>
+
+    foreach (var wire in Model.Wires.OrderBy(w => w.SortOrder))
+    {
+        using (Html.BeginForm("Solve", "BombStopper", FormMethod.Post))
+        {
+            <input type="hidden" name="wireToCut" value="@wire.SortOrder"/>
+            <input type="hidden" name="gameId" value="@Model.GameId"/>
+            @wire.SortOrder
+            <button type="submit" class="btn btn-primary" style="background-color: @wire.Color; display: inline; width: 150px; height: 10px; margin-bottom: 5px;">&nbsp;</button>
+        }
+    }
+
+    <h2>How to Defuse This Bomb...</h2>
+
+    foreach (var ruleSet in Model.RuleSets.OrderBy(rs => rs.NumberOfWires))
+    {
+        <h2>@ruleSet.NumberOfWires Wires:</h2>
+        <ul>
+            @{ var ruleCount = 1; }
+            @foreach (var rule in ruleSet.Rules.OrderBy(r => r.RuleIndex))
+            {
+                <li>
+                    @if (ruleCount == 1)
+                    {
+                        @:If @rule.RuleText
+                    }
+                    else
+                    {
+                        @:otherwise, if @rule.RuleText,
+                    }
+                </li>
+                ruleCount++;
+            }
+            <li>otherwise, @ruleSet.FallThroughRuleText.</li>
+        </ul>
+    }
+}

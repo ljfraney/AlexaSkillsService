@@ -1,0 +1,17 @@
+﻿@model AlexaSkillsService.Models.BombStopper.Game
+
+@{
+    ViewBag.Title = "Test2";
+    Layout = "~/Views/Shared/_BombStopper.cshtml";
+}
+
+<div class="row">
+    <div class="col-sm-12">
+        <h1>Bomb Stopper Test Page</h1>
+
+        <p>Alexa: "Great! Your serial number is @Model.SerialNumber. Enter this number at www.somewhere.com."</p>
+
+        @Html.ActionLink("Click here to enter the serial number.", "Index")
+    </div>
+</div>
+

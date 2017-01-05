@@ -1,0 +1,32 @@
+﻿@model AlexaSkillsService.Models.BombStopper.Game
+
+@{
+    ViewBag.Title = "Result";
+    Layout = "~/Views/Shared/_BombStopper.cshtml";
+}
+
+<h1>Bomb Stopper</h1>
+
+@if (!Model.Won.HasValue)
+{
+    <h2>Unknown</h2>
+}
+else if (Model.Won.Value)
+{
+    <h2>You Won!!!</h2>
+}
+else
+{
+    <h2>
+        
+        @if (Model.TimeRanOut == true)
+        {
+            @:You ran out of time.
+        }
+        else
+        {
+            @:Sorry, you cut the wrong wire.
+        }
+    </h2>
+}
+

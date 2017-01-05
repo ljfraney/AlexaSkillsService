@@ -1,4 +1,4 @@
-﻿using AlexaSkillsService.Data.DontBlowUp;
+﻿using AlexaSkillsService.Data.BombStopper;
 using System.Data.Entity;
 using System.Threading.Tasks;
 

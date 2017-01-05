@@ -2,6 +2,6 @@
 {
     public enum Skill
     {
-        DontBlowUp
+        BombStopper
     }
 }

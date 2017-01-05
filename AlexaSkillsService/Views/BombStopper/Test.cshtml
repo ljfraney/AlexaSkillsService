@@ -1,0 +1,21 @@
+﻿@{
+    ViewBag.Title = "Test";
+    Layout = "~/Views/Shared/_BombStopper.cshtml";
+}
+
+<div class="row">
+    <div class="col-sm-12">
+        <h1>Bomb Stopper</h1>
+
+        <p>User: "Alexa, play Bomb Stopper"</p>
+
+        <p>Alexa: "Welcome to Bomb Stopper. Do you want to start a new game?"</p>
+
+        <p>User: "Yes"</p>
+
+        @using (Html.BeginForm("NewGame", "BombStopper"))
+        {
+            <button type="submit">New Game</button>
+        }
+    </div>
+</div>
