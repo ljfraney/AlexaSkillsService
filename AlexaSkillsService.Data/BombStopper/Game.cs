@@ -21,6 +21,8 @@ namespace AlexaSkillsService.Data.BombStopper
 
         public int SerialNumber { get; set; }
 
+        public int Year { get; set; }
+
         public string SessionId { get; set; }
 
         public string UserId { get; set; }
@@ -31,15 +33,11 @@ namespace AlexaSkillsService.Data.BombStopper
 
         public DateTime? TimeStarted { get; set; }
 
-        public int NarrativeId { get; set; }
-
         public DateTime? TimeCompleted { get; set; }
 
         public bool? Won { get; set; }
 
         public bool? TimeRanOut { get; set; }
-        
-        public virtual Narrative Narrative { get; set; }
 
         public virtual ICollection<RuleSet> RuleSets { get; set; }
 

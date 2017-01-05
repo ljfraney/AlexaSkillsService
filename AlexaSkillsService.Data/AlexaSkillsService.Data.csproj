@@ -50,7 +50,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BombStopper\Game.cs" />
-    <Compile Include="BombStopper\Narrative.cs" />
     <Compile Include="BombStopper\Rule.cs" />
     <Compile Include="BombStopper\RuleSet.cs" />
     <Compile Include="BombStopper\Wire.cs" />

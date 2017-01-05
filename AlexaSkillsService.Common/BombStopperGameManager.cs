@@ -11,6 +11,9 @@ namespace AlexaSkillsService.Common
 {
     public class BombStopperGameManager : IBombStopperGameManager
     {
+        //TODO: Change and hide in external config.
+        private const string SharedSecret = "$XT!nx7$GrYFe";
+
         private readonly IAlexaSkillsContext _alexaSkillsContext;
 
         public BombStopperGameManager(IAlexaSkillsContext alexaSkillsContext)
@@ -23,15 +26,10 @@ namespace AlexaSkillsService.Common
             const int minWireCount = 3;
             const int maxWireCount = 6;
 
-
-            var narratives = _alexaSkillsContext.Narratives.ToList();
-            var randomNarrativeIndex = RandomHelper.Instance.Next(0, narratives.Count);
-            var narrative = narratives.ElementAt(randomNarrativeIndex);
-
             var game = new Data.BombStopper.Game
             {
                 SerialNumber = RandomHelper.Instance.Next(10000, 100000), //Max will be 99999
-                NarrativeId = narrative.NarrativeId,
+                Year = RandomHelper.Instance.Next(1900, DateTime.UtcNow.Year + 1),
                 TimeCreated = DateTime.UtcNow,
                 SecondsToSolve = 60,
                 SessionId = sessionId,
@@ -57,28 +55,44 @@ namespace AlexaSkillsService.Common
             _alexaSkillsContext.SaveChanges();
 
             var gameModel = game.ToModel();
-            gameModel.Narrative = narrative.Text;
             return gameModel;
         }
 
-        public Game StartGame(string serialNumber, double minutesToOpenGame)
+        public Game GetGameBySerialNumber(string serialNumber, double minutesToOpenGame)
         {
             int iSerialNumber;
             if (!int.TryParse(serialNumber, out iSerialNumber))
                 return null;
 
-            var fiveMinutesAgo = DateTime.UtcNow.AddMinutes(-minutesToOpenGame);
+            var numMinutesAgo = DateTime.UtcNow.AddMinutes(-minutesToOpenGame);
             var game = _alexaSkillsContext.Games
-                .Where(g => g.SerialNumber == iSerialNumber && g.TimeCreated >= fiveMinutesAgo && g.TimeCompleted == null)
+                .Where(g => g.SerialNumber == iSerialNumber && g.TimeCreated >= numMinutesAgo && g.TimeCompleted == null)
                 .Include(g => g.RuleSets.Select(rs => rs.Rules))
-                .Include(g => g.Narrative)
+                .Include(g => g.Wires).FirstOrDefault();
+
+            var gameModel = game.ToModel();
+            gameModel.CryptoGameId = Crypto.EncryptStringAES(gameModel.GameId.ToString(), SharedSecret);
+            return gameModel;
+        }
+
+        public Game StartGame(string cryptoGameId, double minutesToOpenGame)
+        {
+            var numMinutesAgo = DateTime.UtcNow.AddMinutes(-minutesToOpenGame);
+
+            var gameId = int.Parse(Crypto.DecryptStringAES(cryptoGameId, SharedSecret));
+
+            var game = _alexaSkillsContext.Games
+                .Where(g => g.GameId == gameId && g.TimeCreated >= numMinutesAgo && g.TimeCompleted == null)
+                .Include(g => g.RuleSets.Select(rs => rs.Rules))
                 .Include(g => g.Wires).FirstOrDefault();
 
             Debug.Assert(game != null, "game != null");
             game.TimeStarted = DateTime.UtcNow;
             _alexaSkillsContext.SaveChanges();
 
-            return game?.ToModel();
+            var gameModel = game.ToModel();
+            gameModel.CryptoGameId = Crypto.EncryptStringAES(gameModel.GameId.ToString(), SharedSecret);
+            return gameModel;
         }
             
         private Data.BombStopper.RuleSet GetRandomRuleSet(int wireCount)
@@ -221,9 +235,13 @@ namespace AlexaSkillsService.Common
             return ruleSet;
         }
 
-        public Game Solve(int gameId, int wireToCut)
+        public Game Solve(string cryptoGameId, int wireToCut)
         {
+            //TODO: Finding some false negatives. Look for logic errors.
+
             var timeCompleted = DateTime.UtcNow;
+
+            var gameId = int.Parse(Crypto.DecryptStringAES(cryptoGameId, SharedSecret));
 
             var game = _alexaSkillsContext.Games
                 .Where(g => g.GameId == gameId)

@@ -7,15 +7,17 @@ namespace AlexaSkillsService.Models.BombStopper
     {
         public int GameId { get; set; }
 
+        public string CryptoGameId { get; set; }
+
         public int SerialNumber { get; set; }
+
+        public int Year { get; set; }
 
         public DateTime TimeCreated { get; set; }
 
         public int SecondsToSolve { get; set; }
 
         public DateTime? TimeStarted { get; set; }
-
-        public string Narrative { get; set; }
 
         public List<RuleSet> RuleSets { get; set; }
 

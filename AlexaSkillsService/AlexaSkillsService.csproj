@@ -237,6 +237,7 @@
     <Content Include="Views\BombStopper\Test2.cshtml" />
     <Content Include="Views\BombStopper\Game.cshtml" />
     <Content Include="Views\BombStopper\Result.cshtml" />
+    <Content Include="Views\BombStopper\Year.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

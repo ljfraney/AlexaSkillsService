@@ -17,6 +17,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AlexaSkillsService.Common",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AlexaSkillsService.Tests", "AlexaSkillsService.Tests\AlexaSkillsService.Tests.csproj", "{C600C393-B7DB-4910-B804-B07F668C149C}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{333A696C-0933-4BFF-93C2-F62A264C40E0}"
+	ProjectSection(SolutionItems) = preProject
+		Narratives.txt = Narratives.txt
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

@@ -1,11 +1,15 @@
+using AlexaSkillsService.Models.BombStopper;
+
 namespace AlexaSkillsService.Interfaces
 {
     public interface IBombStopperGameManager
     {
-        Models.BombStopper.Game CreateGame(string sessionId, string userId);
+        Game CreateGame(string sessionId, string userId);
 
-        Models.BombStopper.Game StartGame(string serialNumber, double minutesToOpenGame);
+        Game GetGameBySerialNumber(string serialNumber, double minutesToOpenGame);
 
-        Models.BombStopper.Game Solve(int gameId, int wireToCut);
+        Game StartGame(string cryptoGameId, double minutesToOpenGame);
+
+        Game Solve(string cryptoGameId, int wireToCut);
     }
 }

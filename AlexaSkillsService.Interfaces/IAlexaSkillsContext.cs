@@ -8,8 +8,6 @@ namespace AlexaSkillsService.Interfaces
     {
         IDbSet<Game> Games { get; set; }
 
-        IDbSet<Narrative> Narratives { get; set; }
-
         int SaveChanges();
 
         Task<int> SaveChangesAsync();

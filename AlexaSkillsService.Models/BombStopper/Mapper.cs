@@ -11,6 +11,7 @@ namespace AlexaSkillsService.Models.BombStopper
             {
                 GameId = dbGame.GameId,
                 SerialNumber = dbGame.SerialNumber,
+                Year = dbGame.Year,
                 TimeCreated = dbGame.TimeCreated,
                 SecondsToSolve = dbGame.SecondsToSolve,
                 TimeStarted = dbGame.TimeStarted,
@@ -18,7 +19,6 @@ namespace AlexaSkillsService.Models.BombStopper
                 Won = dbGame.Won,
                 TimeRanOut = dbGame.TimeRanOut,
                 Wires = dbGame.Wires.Select(w => w.ToModel()).ToList(),
-                Narrative = dbGame.Narrative?.Text,
                 RuleSets = dbGame.RuleSets.Select(rs => rs.ToModel()).ToList()
             };
         }

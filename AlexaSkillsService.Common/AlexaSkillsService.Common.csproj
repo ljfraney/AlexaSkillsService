@@ -51,6 +51,7 @@
   <ItemGroup>
     <Compile Include="BombStopperGameManager.cs" />
     <Compile Include="BombStopperRequestHandler.cs" />
+    <Compile Include="Crypto.cs" />
     <Compile Include="ListExtender.cs" />
     <Compile Include="IntExtender.cs" />
     <Compile Include="RandomHelper.cs" />

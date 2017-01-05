@@ -1,5 +1,6 @@
 ﻿using AlexaSkillsService.Interfaces;
 using System.Web.Mvc;
+using AlexaSkillsService.Helpers;
 
 namespace AlexaSkillsService.Controllers
 {
@@ -31,17 +32,28 @@ namespace AlexaSkillsService.Controllers
         }
 
         [HttpPost]
-        public ActionResult GoToGame(string serialNumber)
+        public ActionResult Year(string serialNumber)
         {
-            var game = _bombStopperGameManager.StartGame(serialNumber, 5.0);
+#if DEBUG
+            ViewBag.Debug = true;
+#endif
+            //User has five minutes to get to the Year view.
+            var game = _bombStopperGameManager.GetGameBySerialNumber(serialNumber, 5.0);
+            return View("Year", game);
+        }
+
+        [HttpPost]
+        public ActionResult GoToGame(string cryptoGameId)
+        {
+            //User has ten minutes to get to the Game view.
+            var game = _bombStopperGameManager.StartGame(cryptoGameId, 10.0);
             return View("Game", game);
         }
 
         [HttpPost]
-        public ActionResult Solve(int gameId, int wireToCut)
+        public ActionResult Solve(string cryptoGameId, int wireToCut)
         {
-            //TODO: Encrypt gameId.
-            var game = _bombStopperGameManager.Solve(gameId, wireToCut);
+            var game = _bombStopperGameManager.Solve(cryptoGameId, wireToCut);
             return View("Result", game);
         }
     }

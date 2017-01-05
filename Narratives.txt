@@ -1,0 +1,132 @@
+In case I decide to revive the Narratives...
+
+Data Models:
+--------------------
+
+public class Narrative
+{
+    public int NarrativeId { get; set; }
+
+    public string Key { get; set; }
+
+    public string Text { get; set; }
+}
+
+public class Game
+{
+    ...
+    public int NarrativeId { get; set; }
+	...        
+    public virtual Narrative Narrative { get; set; }
+	...
+}
+
+Context:
+--------------------
+
+public class AlexaSkillsContext : DbContext, IAlexaSkillsContext
+{
+    ...
+
+    public virtual IDbSet<Narrative> Narratives { get; set; }
+
+    protected override void OnModelCreating(DbModelBuilder modelBuilder)
+    {
+        ...
+        modelBuilder.Configurations.Add(new NarrativeConfiguration());
+        ...
+    }  
+}
+
+Data Configuration:
+--------------------
+
+internal class NarrativeConfiguration : EntityTypeConfiguration<Narrative>
+{
+    public NarrativeConfiguration()
+    {
+        ToTable("Narrative", "BombStopper");
+
+        Property(n => n.Key)
+            .HasMaxLength(25)
+            .HasColumnAnnotation(IndexAnnotation.AnnotationName, new IndexAnnotation(new IndexAttribute()));
+
+        Property(n => n.Text)
+            .HasColumnType("nvarchar(max)");
+    }
+}
+
+Seed Method:
+--------------------
+
+var russia1962 = context.Narratives.SingleOrDefault(n => n.Key == "Russia1962");
+if (russia1962 == null)
+{
+    russia1962 = new Narrative
+    {
+        Key = "Russia1962",
+        Text = "October twenty-second, nineteen sixty-two. Ten o'clock p.m.: Memo to Special Agent Sydney Ferrel: Agent Ferrel, As " +
+                "you know, ealier tonight, President Kennedy addressed the nation, informing them of the discovery of missile " +
+                "facilities in Cuba, 90 miles from the Florida coast. United States forces have been placed on DEFCON 3. The USS " +
+                "Newport News is en route to stop the Soviet vessel Labinsk from entering Cuban waters. What the president did not " +
+                "announce is that Navy divers have discovered an explosive device attached to the starboard hull of the ship. Your " +
+                "mission: Disembark the USS Leary, rendezvous with the divers, and disarm the device."
+    };
+    context.Narratives.Add(russia1962);
+}
+
+var germany1942 = context.Narratives.SingleOrDefault(n => n.Key == "Germany1942");
+if (germany1942 == null)
+{
+    germany1942 = new Narrative
+    {
+        Key = "Germany1942",
+        Text = "April fifteenth, nineteen forty-two. Three o'clock p.m.: Memo to Special Agent Leon Walker: Agent Walker, in recent " +
+                "months the Germanys set back Allied efforts by creating a new version of their Enigma encryption machine code named Triton. " +
+                "British efforts to decrypt messages encoded with Triton have been unsuccessful. This morning, the USS Greer discovered one " +
+                "of the new machines after taking control of a Germany U-boat in the Carribean, but the device is armed with explosives. Your " +
+                "mission: Locate the the USS Greer, board the captive submarine, and neutralize the Triton. Upon your success, deliver the "+
+                "device to the U.S. Navy's cryptanalysis office immediately."
+    };
+    context.Narratives.Add(germany1942);
+}
+
+Models:
+--------------------
+
+public class Game
+{
+    ...
+    public string Narrative { get; set; }
+	...
+}
+
+public static class Mapper
+{
+    public static Game ToModel(this Data.BombStopper.Game dbGame)
+    {
+        return new Game
+        {
+            ...
+            Narrative = dbGame.Narrative?.Text,
+            ...
+        };
+    }
+}
+
+Interfaces:
+--------------------
+
+public interface IAlexaSkillsContext
+{
+	...
+    IDbSet<Narrative> Narratives { get; set; }
+	...
+}
+
+Get Random Narrative:
+--------------------
+
+var narratives = _alexaSkillsContext.Narratives.ToList();
+var randomNarrativeIndex = RandomHelper.Instance.Next(0, narratives.Count);
+var narrative = narratives.ElementAt(randomNarrativeIndex);

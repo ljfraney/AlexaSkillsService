@@ -19,9 +19,12 @@ namespace AlexaSkillsService.Common
 
         public AlexaResponse HandleLaunchRequest(AlexaRequest request, AlexaResponse response)
         {
-            response.Response.OutputSpeech.Text = "Welcome to Bomb Stopper. Are you ready to start a game?";
-            response.Response.Reprompt.OutputSpeech.Text = "Are you ready to start a game? Please answer yes or no.";
-            response.SessionAttributes.Strings.Add(GameState.AskedDoYouWantToStart.ToString());
+            var newGame = _bombStopperGameManager.CreateGame(request.Session.SessionId, request.Session.User.UserId);
+            var readableSerialNumber = newGame.SerialNumber.ToString().Aggregate("", (current, character) => current + (character + " "));
+            response.SessionAttributes.KeyValuePairs.Add(new KeyValuePair<string, string>("SerialNumber", newGame.SerialNumber.ToString()));
+            response.Response.OutputSpeech.Text = $"Welcome to Bomb Stopper! Begin by going to www.bombstopper.com. Enter serial number { readableSerialNumber } and read me the year shown on the bomb.";
+            response.Response.Reprompt.OutputSpeech.Text = $"Go to www.bombstopper.com. Enter serial number { readableSerialNumber }. What year is shown on the bomb?.";
+            response.SessionAttributes.Strings.Add(GameState.WaitingForYear.ToString());
             response.Response.ShouldEndSession = false;
             return response;
         }
@@ -105,24 +108,24 @@ namespace AlexaSkillsService.Common
         {
             try
             {
-                if (request.Session.Attributes.Strings.Contains(GameState.AskedDoYouWantToStart.ToString()))
-                {
-                    var newGame = _bombStopperGameManager.CreateGame(request.Session.SessionId, request.Session.User.UserId);
-                    var readableSerialNumber = newGame.SerialNumber.ToString().Aggregate("", (current, character) => current + (character + " "));
-                    response.SessionAttributes.KeyValuePairs.Add(new KeyValuePair<string, string>("SerialNumber", newGame.SerialNumber.ToString()));
-                    response.Response.OutputSpeech.Text = "Great! Begin by going to www.bombstopper.com. Enter serial number " + readableSerialNumber + " to begin.";
-                    response.Response.Reprompt.OutputSpeech.Text = "Go to www.bombstopper.com and enter serial number " + readableSerialNumber + " to get started.";
-                    response.Response.ShouldEndSession = true;
-                    //request.Session.Attributes.Strings.Remove(GameState.AskedDoYouWantToStart.ToString());
-                }
-                else
-                {
-                    //This should never happen, but...
-                    response.Response.OutputSpeech.Text = "Bye!";
-                    response.Response.ShouldEndSession = true;
-                }
-                
-                response.SessionAttributes.SkillAttributes.OutputSpeech = response.Response.OutputSpeech;
+                response.Response.OutputSpeech.Text = "I heard you say Yes, but I didn't ask a yes or no question. So, bye!";
+                response.Response.ShouldEndSession = true;
+                //if (request.Session.Attributes.Strings.Contains(GameState.WaitingForYear.ToString()))
+                //{
+
+                //    response.Response.OutputSpeech.Text = "Great! Begin by going to www.bombstopper.com. Enter serial number " + readableSerialNumber + " to begin.";
+                //    response.Response.Reprompt.OutputSpeech.Text = "Go to www.bombstopper.com and enter serial number " + readableSerialNumber + " to get started.";
+                //    response.Response.ShouldEndSession = true;
+                //    //request.Session.Attributes.Strings.Remove(GameState.AskedDoYouWantToStart.ToString());
+                //}
+                //else
+                //{
+                //    //This should never happen, but...
+                //    response.Response.OutputSpeech.Text = "Bye!";
+                //    response.Response.ShouldEndSession = true;
+                //}
+
+                //response.SessionAttributes.SkillAttributes.OutputSpeech = response.Response.OutputSpeech;
             }
             catch (Exception ex)
             {
@@ -135,20 +138,22 @@ namespace AlexaSkillsService.Common
         {
             try
             {
-                if (request.Session.Attributes.Strings.Contains(GameState.AskedDoYouWantToStart.ToString()))
-                {
-                    response.Response.OutputSpeech.Text = "OK, come back when you want to play.";
-                    response.Response.ShouldEndSession = true;
-                }
-                else
-                {
-                    //This should never happen, but...
-                    response.Response.OutputSpeech.Text = "Bye!";
-                    response.Response.ShouldEndSession = true;
-                }
-                
-                response.SessionAttributes.SkillAttributes.OutputSpeech = response.Response.OutputSpeech;
-                response.Response.Reprompt = null;
+                response.Response.OutputSpeech.Text = "I heard you say No, but I didn't ask a yes or no question. So, bye!";
+                response.Response.ShouldEndSession = true;
+                //if (request.Session.Attributes.Strings.Contains(GameState.AskedDoYouWantToStart.ToString()))
+                //{
+                //    response.Response.OutputSpeech.Text = "OK, come back when you want to play.";
+                //    response.Response.ShouldEndSession = true;
+                //}
+                //else
+                //{
+                //    //This should never happen, but...
+                //    response.Response.OutputSpeech.Text = "Bye!";
+                //    response.Response.ShouldEndSession = true;
+                //}
+
+                //response.SessionAttributes.SkillAttributes.OutputSpeech = response.Response.OutputSpeech;
+                //response.Response.Reprompt = null;
             }
             catch (Exception ex)
             {
@@ -265,10 +270,10 @@ namespace AlexaSkillsService.Common
 
         private AlexaResponse ProcessHelpIntent(AlexaRequest request, AlexaResponse response)
         {
-            if (request.Session.Attributes.Strings.Contains(GameState.AskedDoYouWantToStart.ToString()))
+            if (request.Session.Attributes.Strings.Contains(GameState.WaitingForYear.ToString()))
             {
-                response.Response.OutputSpeech.Text = "Before I can help, I need to know if you want to start a game. Please answer yes or no.";
-                response.Response.Reprompt.OutputSpeech.Text = "Would you like to start a game? Please answer yes or no.";
+                response.Response.OutputSpeech.Text = $"From a web browser, go to www.bombstopper.com. Click the Start Game button. Enter serial number 99999 and click the check mark. Tell me the year that you see on the bomb.";
+                response.Response.Reprompt.OutputSpeech.Text = response.Response.OutputSpeech.Text;
                 response.Response.ShouldEndSession = false;
             }
             else

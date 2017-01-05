@@ -14,8 +14,6 @@ else
 {
     <h1>Serial Number @Model.SerialNumber</h1>
 
-    <p>@Model.Narrative</p>
-
     <h2>Seconds to Solve: @Model.SecondsToSolve</h2>
 
     <h2>Wires:</h2>
@@ -25,7 +23,7 @@ else
         using (Html.BeginForm("Solve", "BombStopper", FormMethod.Post))
         {
             <input type="hidden" name="wireToCut" value="@wire.SortOrder"/>
-            <input type="hidden" name="gameId" value="@Model.GameId"/>
+            <input type="hidden" name="cryptoGameId" value="@Model.CryptoGameId"/>
             @wire.SortOrder
             <button type="submit" class="btn btn-primary" style="background-color: @wire.Color; display: inline; width: 150px; height: 10px; margin-bottom: 5px;">&nbsp;</button>
         }

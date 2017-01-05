@@ -1,0 +1,18 @@
+﻿@model AlexaSkillsService.Models.BombStopper.Game
+@{
+    ViewBag.Title = "Year";
+    Layout = "~/Views/Shared/_BombStopper.cshtml";
+}
+
+<div style="text-align: center; margin-top: 200px">
+    <h1>Year</h1>
+    <h2>@Model.Year</h2>
+    @if (ViewBag.Debug != null)
+    {
+        using (Html.BeginForm("GoToGame", "BombStopper"))
+        {
+            @Html.HiddenFor(m => m.CryptoGameId)
+            <button type="submit">To Game ></button>
+        }
+    }
+</div>
