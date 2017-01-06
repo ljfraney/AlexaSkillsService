@@ -11,14 +11,13 @@ namespace AlexaSkillsService.Common
 {
     public class BombStopperGameManager : IBombStopperGameManager
     {
-        //TODO: Change and hide in external config.
-        private const string SharedSecret = "$XT!nx7$GrYFe";
-
         private readonly IAlexaSkillsContext _alexaSkillsContext;
+        private readonly IConfigurationAdapter _configurationAdapter;
 
-        public BombStopperGameManager(IAlexaSkillsContext alexaSkillsContext)
+        public BombStopperGameManager(IAlexaSkillsContext alexaSkillsContext, IConfigurationAdapter configurationAdapter)
         {
             _alexaSkillsContext = alexaSkillsContext;
+            _configurationAdapter = configurationAdapter;
         }
 
         public Game CreateGame(string sessionId, string userId)
@@ -71,7 +70,7 @@ namespace AlexaSkillsService.Common
                 .Include(g => g.Wires).FirstOrDefault();
 
             var gameModel = game.ToModel();
-            gameModel.CryptoGameId = Crypto.EncryptStringAES(gameModel.GameId.ToString(), SharedSecret);
+            gameModel.CryptoGameId = Crypto.EncryptStringAES(gameModel.GameId.ToString(), _configurationAdapter.SharedSecret);
             return gameModel;
         }
 
@@ -79,7 +78,7 @@ namespace AlexaSkillsService.Common
         {
             var numMinutesAgo = DateTime.UtcNow.AddMinutes(-minutesToOpenGame);
 
-            var gameId = int.Parse(Crypto.DecryptStringAES(cryptoGameId, SharedSecret));
+            var gameId = int.Parse(Crypto.DecryptStringAES(cryptoGameId, _configurationAdapter.SharedSecret));
 
             var game = _alexaSkillsContext.Games
                 .Where(g => g.GameId == gameId && g.TimeCreated >= numMinutesAgo && g.TimeCompleted == null)
@@ -91,7 +90,7 @@ namespace AlexaSkillsService.Common
             _alexaSkillsContext.SaveChanges();
 
             var gameModel = game.ToModel();
-            gameModel.CryptoGameId = Crypto.EncryptStringAES(gameModel.GameId.ToString(), SharedSecret);
+            gameModel.CryptoGameId = Crypto.EncryptStringAES(gameModel.GameId.ToString(), _configurationAdapter.SharedSecret);
             return gameModel;
         }
             
@@ -241,7 +240,7 @@ namespace AlexaSkillsService.Common
 
             var timeCompleted = DateTime.UtcNow;
 
-            var gameId = int.Parse(Crypto.DecryptStringAES(cryptoGameId, SharedSecret));
+            var gameId = int.Parse(Crypto.DecryptStringAES(cryptoGameId, _configurationAdapter.SharedSecret));
 
             var game = _alexaSkillsContext.Games
                 .Where(g => g.GameId == gameId)

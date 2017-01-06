@@ -7,7 +7,12 @@ namespace AlexaSkillsService.Common
 {
     public static class Crypto
     {
-        private static readonly byte[] Salt = Encoding.ASCII.GetBytes("3Yptg826RBhPgu&W2&cbsB");
+        private static readonly byte[] Salt;
+
+        static Crypto()
+        {
+            Salt = Encoding.ASCII.GetBytes(System.Configuration.ConfigurationManager.AppSettings["Salt"]);
+        }
 
         /// <summary>
         /// Encrypt the given string using AES.  The string can be decrypted using 

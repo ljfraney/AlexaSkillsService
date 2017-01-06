@@ -9,10 +9,40 @@
     <h2>@Model.Year</h2>
     @if (ViewBag.Debug != null)
     {
-        using (Html.BeginForm("GoToGame", "BombStopper"))
+        using (Html.BeginForm("GoToGame", "BombStopper", new {}, FormMethod.Post, new { id = "toGameForm", style = "display: none;"}))
         {
             @Html.HiddenFor(m => m.CryptoGameId)
-            <button type="submit">To Game ></button>
+            <button id="toGame" type="submit">To Game ></button>
         }
     }
 </div>
+
+@section scripts
+{
+    <script src="~/Scripts/jquery.signalR-2.2.1.min.js"></script>
+    <script src="~/signalr/hubs"></script>
+    <script type="text/javascript">
+        $(function() {
+            var hub = $.connection.bombStopperHub;
+
+            hub.client.goToGame = function() {
+                $('#toGameForm').submit();
+            };
+
+            hub.client.hello = function() {
+                alert('Received "Hello" from SignalR!');
+            };
+
+            $.connection.hub.start();
+        });
+    </script>
+
+    @if (ViewBag.Debug != null && ViewBag.Debug == true)
+    {
+    <script type="text/javascript">
+        $(function() {
+            $('#toGameForm').show();
+        });
+    </script>
+    }
+}

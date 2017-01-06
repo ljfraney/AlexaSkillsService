@@ -1,16 +1,23 @@
-﻿using AlexaSkillsService.Interfaces;
+﻿using AlexaSkillsService.Hubs;
+using AlexaSkillsService.Interfaces;
+using Microsoft.AspNet.SignalR;
+using System;
+using System.Net;
 using System.Web.Mvc;
-using AlexaSkillsService.Helpers;
 
 namespace AlexaSkillsService.Controllers
 {
     public class BombStopperController : Controller
     {
         private readonly IBombStopperGameManager _bombStopperGameManager;
+        private readonly IConfigurationAdapter _configurationAdapter;
+        private readonly ICacheAdapter _cacheAdapter;
 
-        public BombStopperController(IBombStopperGameManager bombStopperGameManager)
+        public BombStopperController(IBombStopperGameManager bombStopperGameManager, IConfigurationAdapter configurationAdapter, ICacheAdapter cacheAdapter)
         {
             _bombStopperGameManager = bombStopperGameManager;
+            _configurationAdapter = configurationAdapter;
+            _cacheAdapter = cacheAdapter;
         }
 
         // GET: BombStopper
@@ -55,6 +62,14 @@ namespace AlexaSkillsService.Controllers
         {
             var game = _bombStopperGameManager.Solve(cryptoGameId, wireToCut);
             return View("Result", game);
+        }
+
+        [HttpGet]
+        public ActionResult SayHi()
+        {
+            var hubContext = GlobalHost.ConnectionManager.GetHubContext<BombStopperHub>();
+            hubContext.Clients.All.hello();
+            return new HttpStatusCodeResult(HttpStatusCode.OK);
         }
     }
 }

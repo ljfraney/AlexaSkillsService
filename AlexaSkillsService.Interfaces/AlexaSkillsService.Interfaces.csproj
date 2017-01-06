@@ -51,6 +51,8 @@
   <ItemGroup>
     <Compile Include="IAlexaSkillsContext.cs" />
     <Compile Include="IBombStopperGameManager.cs" />
+    <Compile Include="ICacheAdapter.cs" />
+    <Compile Include="IConfigurationAdapter.cs" />
     <Compile Include="ISkillRequestHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

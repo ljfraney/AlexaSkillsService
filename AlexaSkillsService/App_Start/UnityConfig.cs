@@ -1,4 +1,6 @@
+using AlexaSkillsService.Utilities;
 using Microsoft.Practices.Unity;
+using RedisCacheManager;
 using System;
 using System.Linq;
 using System.Web.Http;
@@ -27,10 +29,8 @@ namespace AlexaSkillsService
 
         public static void RegisterTypes(IUnityContainer container)
         {
-            // register all your components with the container here
-            // it is NOT necessary to register your controllers
-
             // e.g. container.RegisterType<ITestService, TestService>();
+            container.RegisterInstance<IRedisManager>(new CacheManager(new StackExchangeCacher(new ConfigurationAdapter().RedisCache)));
 
             var assemblies = AllClasses.FromAssemblies(AppDomain.CurrentDomain.GetAssemblies()).Where(a => a.Namespace != null && a.Namespace.Contains("AlexaSkillsService"));
 

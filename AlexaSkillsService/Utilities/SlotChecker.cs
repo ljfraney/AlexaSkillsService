@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace AlexaSkillsService.Helpers
+namespace AlexaSkillsService.Utilities
 {
     //Should use this class to double-check any custom slots 
     //to ensure the intent is interpreting the slot value correctly

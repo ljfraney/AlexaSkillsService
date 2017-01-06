@@ -1,6 +1,5 @@
 ﻿using AlexaSkillsService.Common;
 using AlexaSkillsService.Filters;
-using AlexaSkillsService.Helpers;
 using AlexaSkillsService.Interfaces;
 using AlexaSkillsService.Models;
 using System;
@@ -8,6 +7,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
+using RedisCacheManager;
 
 namespace AlexaSkillsService.Controllers
 {
@@ -21,23 +21,17 @@ namespace AlexaSkillsService.Controllers
         private const int CacheExpireMinutes = 5;
 
         private readonly IAlexaSkillsContext _alexaSkillsContext;
-
-        //Using custom object to manage 
-        private RedisCacheManager.IRedisManager _cache;
+        private readonly IConfigurationAdapter _configurationAdapter;
+        private readonly ICacheAdapter _cacheAdapter;
 
         //BombStopper, etc.
         private ISkillRequestHandler _skillRequestHandler;
 
-        //Using cache for persiting important, yet non-permanent session related data. 
-        //Examaples of getting and setting. Complex objects can be used as well:
-        //_cache.Set<string>("key", "value", CacheExpiry);
-        //_cache.Get<string>("key");
-        public DateTime CacheExpiry => DateTime.Now.AddMinutes(CacheExpireMinutes);
-
-        public AlexaController(IAlexaSkillsContext alexaSkillsContext)
+        public AlexaController(IAlexaSkillsContext alexaSkillsContext, IConfigurationAdapter configurationAdapter, ICacheAdapter cacheAdapter)
         {
             _alexaSkillsContext = alexaSkillsContext;
-            //_cache = new RedisCacheManager.CacheManager(new RedisCacheManager.StackExchangeCacher(AppSettings.RedisCache));
+            _configurationAdapter = configurationAdapter;
+            _cacheAdapter = cacheAdapter;
         }
 
         [HttpGet, Route("test")]
@@ -58,8 +52,8 @@ namespace AlexaSkillsService.Controllers
                 if (totalSeconds >= TimeStampTolerance)
                     throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest));
 
-                if (alexaRequest.Session.Application.ApplicationId == AppSettings.BombStopperAppId)
-                    _skillRequestHandler = new BombStopperRequestHandler(new BombStopperGameManager(_alexaSkillsContext));
+                if (alexaRequest.Session.Application.ApplicationId == _configurationAdapter.BombStopperAppId)
+                    _skillRequestHandler = new BombStopperRequestHandler(new BombStopperGameManager(_alexaSkillsContext, _configurationAdapter));
                 else
                     throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest));
 
