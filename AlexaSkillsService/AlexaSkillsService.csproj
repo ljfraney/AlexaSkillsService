@@ -255,6 +255,8 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Handlers\CertificateHandler.cs" />
+    <Compile Include="Utilities\BombStopperGameManager.cs" />
+    <Compile Include="Utilities\BombStopperRequestHandler.cs" />
     <Compile Include="Utilities\CacheAdapter.cs" />
     <Compile Include="Utilities\ConfigurationAdapter.cs" />
     <Compile Include="Utilities\SlotChecker.cs" />

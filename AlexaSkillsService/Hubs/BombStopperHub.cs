@@ -1,18 +1,19 @@
 ﻿using Microsoft.AspNet.SignalR;
-using System.Threading.Tasks;
 
 namespace AlexaSkillsService.Hubs
 {
     public class BombStopperHub : Hub
     {
-        public override Task OnConnected()
-        {
-            return base.OnConnected();
-        }
+        //public override Task OnConnected()
+        //{
+        //    return base.OnConnected();
+        //}
 
-        public void Hello()
-        {
-            Clients.All.hello();
-        }
+        //public void ImHere()
+        //{
+        //    var connectionId = Context.ConnectionId;
+        //    var user = Context.User;
+        //    var test = "";
+        //}
     }
 }

@@ -2,6 +2,7 @@
 {
     public enum GameState
     {
-        WaitingForYear = 1
+        WaitingForYear = 1,
+        AreYouReady = 2
     }
 }

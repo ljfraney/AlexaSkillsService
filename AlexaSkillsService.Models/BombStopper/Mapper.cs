@@ -11,6 +11,7 @@ namespace AlexaSkillsService.Models.BombStopper
             {
                 GameId = dbGame.GameId,
                 SerialNumber = dbGame.SerialNumber,
+                UserId = dbGame.UserId,
                 Year = dbGame.Year,
                 TimeCreated = dbGame.TimeCreated,
                 SecondsToSolve = dbGame.SecondsToSolve,

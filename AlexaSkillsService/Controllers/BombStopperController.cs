@@ -4,6 +4,7 @@ using Microsoft.AspNet.SignalR;
 using System;
 using System.Net;
 using System.Web.Mvc;
+using System.Web.Security;
 
 namespace AlexaSkillsService.Controllers
 {
@@ -46,6 +47,10 @@ namespace AlexaSkillsService.Controllers
 #endif
             //User has five minutes to get to the Year view.
             var game = _bombStopperGameManager.GetGameBySerialNumber(serialNumber, 5.0);
+            if (game != null)
+            {
+                FormsAuthentication.SetAuthCookie(game.UserId, false);
+            }
             return View("Year", game);
         }
 
@@ -62,14 +67,6 @@ namespace AlexaSkillsService.Controllers
         {
             var game = _bombStopperGameManager.Solve(cryptoGameId, wireToCut);
             return View("Result", game);
-        }
-
-        [HttpGet]
-        public ActionResult SayHi()
-        {
-            var hubContext = GlobalHost.ConnectionManager.GetHubContext<BombStopperHub>();
-            hubContext.Clients.All.hello();
-            return new HttpStatusCodeResult(HttpStatusCode.OK);
         }
     }
 }

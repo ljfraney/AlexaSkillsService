@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
+using AlexaSkillsService.Utilities;
 using RedisCacheManager;
 
 namespace AlexaSkillsService.Controllers
@@ -32,12 +33,6 @@ namespace AlexaSkillsService.Controllers
             _alexaSkillsContext = alexaSkillsContext;
             _configurationAdapter = configurationAdapter;
             _cacheAdapter = cacheAdapter;
-        }
-
-        [HttpGet, Route("test")]
-        public async Task<AlexaResponse> Test()
-        {
-            return new AlexaResponse("This is some output speech.");
         }
 
         [HttpPost, Route("main")]

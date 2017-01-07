@@ -16,7 +16,7 @@ else
 
     <h2>Seconds to Solve: @Model.SecondsToSolve</h2>
 
-    <h2>Wires:</h2>
+    @*<h2>Wires:</h2>
 
     foreach (var wire in Model.Wires.OrderBy(w => w.SortOrder))
     {
@@ -27,7 +27,7 @@ else
             @wire.SortOrder
             <button type="submit" class="btn btn-primary" style="background-color: @wire.Color; display: inline; width: 150px; height: 10px; margin-bottom: 5px;">&nbsp;</button>
         }
-    }
+    }*@
 
     <h2>How to Defuse This Bomb...</h2>
 

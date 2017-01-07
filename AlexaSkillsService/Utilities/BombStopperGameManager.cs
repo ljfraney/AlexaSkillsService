@@ -1,13 +1,14 @@
-﻿using AlexaSkillsService.Interfaces;
-using AlexaSkillsService.Models.BombStopper;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using AlexaSkillsService.Common;
+using AlexaSkillsService.Interfaces;
+using AlexaSkillsService.Models.BombStopper;
 
-namespace AlexaSkillsService.Common
+namespace AlexaSkillsService.Utilities
 {
     public class BombStopperGameManager : IBombStopperGameManager
     {
@@ -68,10 +69,20 @@ namespace AlexaSkillsService.Common
                 .Where(g => g.SerialNumber == iSerialNumber && g.TimeCreated >= numMinutesAgo && g.TimeCompleted == null)
                 .Include(g => g.RuleSets.Select(rs => rs.Rules))
                 .Include(g => g.Wires).FirstOrDefault();
-
+            
             var gameModel = game.ToModel();
             gameModel.CryptoGameId = Crypto.EncryptStringAES(gameModel.GameId.ToString(), _configurationAdapter.SharedSecret);
             return gameModel;
+        }
+
+        public Game GetGameById(int gameId)
+        {
+            var game = _alexaSkillsContext.Games
+                .Where(g => g.GameId == gameId)
+                .Include(g => g.RuleSets.Select(rs => rs.Rules))
+                .Include(g => g.Wires).FirstOrDefault();
+
+            return game?.ToModel();
         }
 
         public Game StartGame(string cryptoGameId, double minutesToOpenGame)

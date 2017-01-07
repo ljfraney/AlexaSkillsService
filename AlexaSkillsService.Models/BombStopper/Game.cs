@@ -9,6 +9,8 @@ namespace AlexaSkillsService.Models.BombStopper
 
         public string CryptoGameId { get; set; }
 
+        public string UserId { get; set; }
+
         public int SerialNumber { get; set; }
 
         public int Year { get; set; }

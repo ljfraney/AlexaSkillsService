@@ -1,12 +1,15 @@
-﻿using AlexaSkillsService.Interfaces;
+﻿using AlexaSkillsService.Common;
+using AlexaSkillsService.Hubs;
+using AlexaSkillsService.Interfaces;
 using AlexaSkillsService.Models;
 using AlexaSkillsService.Models.BombStopper;
+using Microsoft.AspNet.SignalR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace AlexaSkillsService.Common
+namespace AlexaSkillsService.Utilities
 {
     public class BombStopperRequestHandler : ISkillRequestHandler
     {
@@ -21,10 +24,10 @@ namespace AlexaSkillsService.Common
         {
             var newGame = _bombStopperGameManager.CreateGame(request.Session.SessionId, request.Session.User.UserId);
             var readableSerialNumber = newGame.SerialNumber.ToString().Aggregate("", (current, character) => current + (character + " "));
-            response.SessionAttributes.KeyValuePairs.Add(new KeyValuePair<string, string>("SerialNumber", newGame.SerialNumber.ToString()));
+            response.SessionAttributes.SkillAttributes.KeyValuePairs.Add(new KeyValuePair<string, string>("GameId", newGame.GameId.ToString()));
             response.Response.OutputSpeech.Text = $"Welcome to Bomb Stopper! Begin by going to www.bombstopper.com. Enter serial number { readableSerialNumber } and read me the year shown on the bomb.";
             response.Response.Reprompt.OutputSpeech.Text = $"Go to www.bombstopper.com. Enter serial number { readableSerialNumber }. What year is shown on the bomb?.";
-            response.SessionAttributes.Strings.Add(GameState.WaitingForYear.ToString());
+            response.SessionAttributes.SkillAttributes.SkillState = (int)GameState.WaitingForYear;
             response.Response.ShouldEndSession = false;
             return response;
         }
@@ -39,8 +42,8 @@ namespace AlexaSkillsService.Common
                     response = ProcessRepeatIntent(request, response);
                     shouldSetLastIntent = false;
                     break;
-                case "ThanksIntent":
-                    response = ProcessThanksIntent(request, response);
+                case "YearIntent":
+                    response = ProcessYearIntent(request, response);
                     break;
                 case "AMAZON.NoIntent":
                     response = await ProcessNoIntent(request, response);
@@ -108,8 +111,20 @@ namespace AlexaSkillsService.Common
         {
             try
             {
-                response.Response.OutputSpeech.Text = "I heard you say Yes, but I didn't ask a yes or no question. So, bye!";
-                response.Response.ShouldEndSession = true;
+                if (request.Session.Attributes.SkillAttributes.SkillState == (int)GameState.AreYouReady)
+                {
+                    var gameId = int.Parse(request.Session.Attributes.SkillAttributes.KeyValuePairs.FirstOrDefault(kvp => kvp.Key == "GameId").Value);
+                    var game = _bombStopperGameManager.GetGameById(gameId);
+                    var hubContext = GlobalHost.ConnectionManager.GetHubContext<BombStopperHub>();
+                    hubContext.Clients.User(game.UserId).goToGame();
+                    var wiresDescription = game.Wires.Aggregate("", (current, wire) => current + (wire.Color + ", "));
+                    response.Response.OutputSpeech.Text = $"OK. I see the following wires on the bomb. {wiresDescription}. Which wire should I cut?";
+                }
+                else
+                {
+                    response.Response.OutputSpeech.Text = "I heard you say Yes, but I didn't ask a yes or no question. So, bye!";
+                    response.Response.ShouldEndSession = true;
+                }
                 //if (request.Session.Attributes.Strings.Contains(GameState.WaitingForYear.ToString()))
                 //{
 
@@ -162,12 +177,51 @@ namespace AlexaSkillsService.Common
             return response;
         }
 
-        private AlexaResponse ProcessThanksIntent(AlexaRequest request, AlexaResponse response)
+        private AlexaResponse ProcessYearIntent(AlexaRequest request, AlexaResponse response)
         {
-            var content = "Have a great day!";
-            response.Response.ShouldEndSession = true;
-            response.Response.OutputSpeech.Text = content;
-            response.SessionAttributes.SkillAttributes.OutputSpeech = response.Response.OutputSpeech;
+            var userInput = (string)request.Request.Intent.Slots["Year"].value;
+
+            int? year = null;
+
+            int iYear;
+            if (int.TryParse(userInput, out iYear))
+                year = iYear;
+            else
+            {
+                DateTime dt;
+                if (DateTime.TryParse(userInput, out dt))
+                    year = dt.Year;
+            }
+
+            if (year != null)
+            {
+                if (request.Session.Attributes.SkillAttributes.SkillState == (int)GameState.WaitingForYear)
+                {
+                    //TODO: Remove GameState?
+                    var gameId = int.Parse(request.Session.Attributes.SkillAttributes.KeyValuePairs.FirstOrDefault(kvp => kvp.Key == "GameId").Value);
+                    var game = _bombStopperGameManager.GetGameById(gameId);
+                    if (game.Year == year)
+                    {
+                        response.Response.OutputSpeech.Text = $"I'm sending you the bomb defusal field manual from {year}. I'm going to check out the bomb and tell you what I see. Are you ready?";
+                        response.SessionAttributes.SkillAttributes.SkillState = (int)GameState.AreYouReady;
+                        response.Response.ShouldEndSession = false;
+                    }
+                    else
+                    {
+                        //TODO: Handle the case where the year is incorrect
+                        response.Response.ShouldEndSession = true;
+                    }
+                }
+                else
+                {
+                    response.Response.OutputSpeech.Text = "I heard you say the year " + year + ", but I didn't ask for a year.";
+                    response.Response.ShouldEndSession = true;
+                }
+            }
+            
+            
+            //response.Response.OutputSpeech.Text = content;
+            //response.SessionAttributes.SkillAttributes.OutputSpeech = response.Response.OutputSpeech;
             return response;
         }
 
@@ -270,7 +324,7 @@ namespace AlexaSkillsService.Common
 
         private AlexaResponse ProcessHelpIntent(AlexaRequest request, AlexaResponse response)
         {
-            if (request.Session.Attributes.Strings.Contains(GameState.WaitingForYear.ToString()))
+            if (request.Session.Attributes.SkillAttributes.SkillState == (int)GameState.WaitingForYear)
             {
                 response.Response.OutputSpeech.Text = $"From a web browser, go to www.bombstopper.com. Click the Start Game button. Enter serial number 99999 and click the check mark. Tell me the year that you see on the bomb.";
                 response.Response.Reprompt.OutputSpeech.Text = response.Response.OutputSpeech.Text;
