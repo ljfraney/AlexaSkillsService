@@ -5,14 +5,12 @@
 }
 
 <div style="text-align: center; margin-top: 200px">
-    <h1>Year</h1>
-    <h2>@Model.Year</h2>
+    <h1>@Model.Year</h1>
     @if (ViewBag.Debug != null)
     {
-        using (Html.BeginForm("GoToGame", "BombStopper", new {}, FormMethod.Post, new { id = "toGameForm", style = "display: none;"}))
+        using (Html.BeginForm("Game", "BombStopper", new {}, FormMethod.Post, new { id = "toGameForm", style = "display: none;"}))
         {
             @Html.HiddenFor(m => m.CryptoGameId)
-            <button id="toGame" type="submit">To Game ></button>
         }
     }
 </div>
@@ -27,6 +25,10 @@
 
             hub.client.goToGame = function() {
                 $('#toGameForm').submit();
+            };
+
+            hub.client.goHome = function() {
+                window.location.href = 'Index';
             };
 
             $.connection.hub.start();

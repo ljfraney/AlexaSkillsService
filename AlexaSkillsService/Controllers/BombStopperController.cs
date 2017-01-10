@@ -1,8 +1,5 @@
-﻿using AlexaSkillsService.Hubs;
+﻿using AlexaSkillsService.Common;
 using AlexaSkillsService.Interfaces;
-using Microsoft.AspNet.SignalR;
-using System;
-using System.Net;
 using System.Web.Mvc;
 using System.Web.Security;
 
@@ -55,18 +52,20 @@ namespace AlexaSkillsService.Controllers
         }
 
         [HttpPost]
-        public ActionResult GoToGame(string cryptoGameId)
+        public ActionResult Game(string cryptoGameId)
         {
             //User has ten minutes to get to the Game view.
-            var game = _bombStopperGameManager.StartGame(cryptoGameId, 10.0);
-            return View("Game", game);
+            var gameId = int.Parse(Crypto.DecryptStringAES(cryptoGameId, _configurationAdapter.SharedSecret));
+            var game = _bombStopperGameManager.StartGame(gameId, 10.0);
+            return View(game);
         }
 
         [HttpPost]
-        public ActionResult Solve(string cryptoGameId, int wireToCut)
+        public ActionResult Result(string cryptoGameId)
         {
-            var game = _bombStopperGameManager.Solve(cryptoGameId, wireToCut);
-            return View("Result", game);
+            var gameId = int.Parse(Crypto.DecryptStringAES(cryptoGameId, _configurationAdapter.SharedSecret));
+            var game = _bombStopperGameManager.GetGameById(gameId);
+            return View(game);
         }
     }
 }

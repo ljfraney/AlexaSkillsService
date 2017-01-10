@@ -10,5 +10,7 @@ namespace AlexaSkillsService.Utilities
         public string BombStopperAppId => ConfigurationManager.AppSettings["BombStopperAppId"];
 
         public string SharedSecret => ConfigurationManager.AppSettings["SharedSecret"];
+
+        public int YearQuestionMaxTries => int.Parse(ConfigurationManager.AppSettings["YearQuestionMaxTries"]);
     }
 }

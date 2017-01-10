@@ -2,10 +2,9 @@
 using AlexaSkillsService.Hubs;
 using AlexaSkillsService.Interfaces;
 using AlexaSkillsService.Models;
-using AlexaSkillsService.Models.BombStopper;
 using Microsoft.AspNet.SignalR;
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -14,20 +13,23 @@ namespace AlexaSkillsService.Utilities
     public class BombStopperRequestHandler : ISkillRequestHandler
     {
         private readonly IBombStopperGameManager _bombStopperGameManager;
+        private readonly IConfigurationAdapter _configurationAdapter;
 
-        public BombStopperRequestHandler(IBombStopperGameManager bombStopperGameManager)
+        public BombStopperRequestHandler(IBombStopperGameManager bombStopperGameManager, IConfigurationAdapter configurationAdapter)
         {
             _bombStopperGameManager = bombStopperGameManager;
+            _configurationAdapter = configurationAdapter;
         }
 
         public AlexaResponse HandleLaunchRequest(AlexaRequest request, AlexaResponse response)
         {
             var newGame = _bombStopperGameManager.CreateGame(request.Session.SessionId, request.Session.User.UserId);
             var readableSerialNumber = newGame.SerialNumber.ToString().Aggregate("", (current, character) => current + (character + " "));
-            response.SessionAttributes.SkillAttributes.KeyValuePairs.Add(new KeyValuePair<string, string>("GameId", newGame.GameId.ToString()));
+            response.AddOrSetSessionItem(SessionKey.BombStopper_GameId, newGame.GameId);
+            response.AddOrSetSessionItem(SessionKey.BombStopper_TimesAnsweredYearQuestion, 0);
             response.Response.OutputSpeech.Text = $"Welcome to Bomb Stopper! Begin by going to www.bombstopper.com. Enter serial number { readableSerialNumber } and read me the year shown on the bomb.";
             response.Response.Reprompt.OutputSpeech.Text = $"Go to www.bombstopper.com. Enter serial number { readableSerialNumber }. What year is shown on the bomb?.";
-            response.SessionAttributes.SkillAttributes.SkillState = (int)GameState.WaitingForYear;
+            response.SetSkillState(SkillState.BombStopper_WaitingForYear);
             response.Response.ShouldEndSession = false;
             return response;
         }
@@ -43,7 +45,13 @@ namespace AlexaSkillsService.Utilities
                     shouldSetLastIntent = false;
                     break;
                 case "YearIntent":
-                    response = ProcessYearIntent(request, response);
+                    response = await ProcessYearIntent(request, response);
+                    break;
+                case "ColorIntent":
+                    response = await ProcessColorIntent(request, response);
+                    break;
+                case "OrdinalIntent":
+                    response = await ProcessOrdinalIntent(request, response);
                     break;
                 case "AMAZON.NoIntent":
                     response = await ProcessNoIntent(request, response);
@@ -81,20 +89,25 @@ namespace AlexaSkillsService.Utilities
 
         public AlexaResponse HandleSessionEndedRequest(AlexaRequest request, AlexaResponse response)
         {
-            response.Response.OutputSpeech.Text = "Thanks for playing!";
+            var hubContext = GlobalHost.ConnectionManager.GetHubContext<BombStopperHub>();
+            hubContext.Clients.User(request.Session.User.UserId).goHome();
+            response.Response.OutputSpeech.Text = "Thanks for playing! Bye.";
             response.Response.ShouldEndSession = true;
             return response;
         }
 
         private AlexaResponse ProcessCancelIntent(AlexaRequest request, AlexaResponse response)
         {
-            response.Response.OutputSpeech.Text = "Goodbye.";
+            var hubContext = GlobalHost.ConnectionManager.GetHubContext<BombStopperHub>();
+            hubContext.Clients.User(request.Session.User.UserId).goHome();
+            response.Response.OutputSpeech.Text = "Thanks for playing! Bye.";
             response.Response.ShouldEndSession = true;
             return response;
         }
 
         private AlexaResponse ProcessRepeatIntent(AlexaRequest request, AlexaResponse response)
         {
+            //TODO: Handle some specific game states
             response.Response.OutputSpeech = request.Session.Attributes.SkillAttributes.OutputSpeech;
             return response;
         }
@@ -111,36 +124,41 @@ namespace AlexaSkillsService.Utilities
         {
             try
             {
-                if (request.Session.Attributes.SkillAttributes.SkillState == (int)GameState.AreYouReady)
+                IHubContext hubContext;
+                switch (request.SkillState())
                 {
-                    var gameId = int.Parse(request.Session.Attributes.SkillAttributes.KeyValuePairs.FirstOrDefault(kvp => kvp.Key == "GameId").Value);
-                    var game = _bombStopperGameManager.GetGameById(gameId);
-                    var hubContext = GlobalHost.ConnectionManager.GetHubContext<BombStopperHub>();
-                    hubContext.Clients.User(game.UserId).goToGame();
-                    var wiresDescription = game.Wires.Aggregate("", (current, wire) => current + (wire.Color + ", "));
-                    response.Response.OutputSpeech.Text = $"OK. I see the following wires on the bomb. {wiresDescription}. Which wire should I cut?";
+                    case SkillState.BombStopper_AreYouReady:
+                        var gameId = request.SessionItem<int>(SessionKey.BombStopper_GameId);
+                        var game = _bombStopperGameManager.GetGameById(gameId);
+                        hubContext = GlobalHost.ConnectionManager.GetHubContext<BombStopperHub>();
+                        hubContext.Clients.User(request.Session.User.UserId).goToGame();
+                        var wiresDescription = game.Wires.Aggregate("", (current, wire) => current + (wire.Color + ", "));
+                        response.Response.OutputSpeech.Text = $"OK. I see the following wires on the bomb. {wiresDescription}. Which wire should I cut?";
+                        response.Response.Reprompt.OutputSpeech.Text = "Do you need more time?";
+                        response.SetSkillState(SkillState.BombStopper_GameOn);
+                        response.Response.ShouldEndSession = false;
+                        break;
+                    case SkillState.BombStopper_GameOn:
+                        response.Response.OutputSpeech.Text = "OK.";
+                        response.Response.Reprompt.OutputSpeech.Text = "Do you need more time? Say yes or no.";
+                        response.Response.ShouldEndSession = false;
+                        break;
+                    case SkillState.BombStopper_PlayAgain:
+                        hubContext = GlobalHost.ConnectionManager.GetHubContext<BombStopperHub>();
+                        hubContext.Clients.User(request.Session.User.UserId).goHome();
+                        var newGame = _bombStopperGameManager.CreateGame(request.Session.SessionId, request.Session.User.UserId);
+                        var readableSerialNumber = newGame.SerialNumber.ToString().Aggregate("", (current, character) => current + (character + " "));
+                        response.AddOrSetSessionItem(SessionKey.BombStopper_GameId, newGame.GameId);
+                        response.Response.OutputSpeech.Text = $"Enter serial number { readableSerialNumber } and read me the year shown on the bomb.";
+                        response.Response.Reprompt.OutputSpeech.Text = $"Enter serial number { readableSerialNumber }. What year is shown on the bomb?.";
+                        response.SetSkillState(SkillState.BombStopper_WaitingForYear);
+                        response.Response.ShouldEndSession = false;
+                        break;
+                    default:
+                        response.SessionAttributes.SkillAttributes.OutputSpeech = response.Response.OutputSpeech;
+                        response.Response.ShouldEndSession = false;
+                        break;
                 }
-                else
-                {
-                    response.Response.OutputSpeech.Text = "I heard you say Yes, but I didn't ask a yes or no question. So, bye!";
-                    response.Response.ShouldEndSession = true;
-                }
-                //if (request.Session.Attributes.Strings.Contains(GameState.WaitingForYear.ToString()))
-                //{
-
-                //    response.Response.OutputSpeech.Text = "Great! Begin by going to www.bombstopper.com. Enter serial number " + readableSerialNumber + " to begin.";
-                //    response.Response.Reprompt.OutputSpeech.Text = "Go to www.bombstopper.com and enter serial number " + readableSerialNumber + " to get started.";
-                //    response.Response.ShouldEndSession = true;
-                //    //request.Session.Attributes.Strings.Remove(GameState.AskedDoYouWantToStart.ToString());
-                //}
-                //else
-                //{
-                //    //This should never happen, but...
-                //    response.Response.OutputSpeech.Text = "Bye!";
-                //    response.Response.ShouldEndSession = true;
-                //}
-
-                //response.SessionAttributes.SkillAttributes.OutputSpeech = response.Response.OutputSpeech;
             }
             catch (Exception ex)
             {
@@ -153,22 +171,22 @@ namespace AlexaSkillsService.Utilities
         {
             try
             {
-                response.Response.OutputSpeech.Text = "I heard you say No, but I didn't ask a yes or no question. So, bye!";
-                response.Response.ShouldEndSession = true;
-                //if (request.Session.Attributes.Strings.Contains(GameState.AskedDoYouWantToStart.ToString()))
-                //{
-                //    response.Response.OutputSpeech.Text = "OK, come back when you want to play.";
-                //    response.Response.ShouldEndSession = true;
-                //}
-                //else
-                //{
-                //    //This should never happen, but...
-                //    response.Response.OutputSpeech.Text = "Bye!";
-                //    response.Response.ShouldEndSession = true;
-                //}
-
-                //response.SessionAttributes.SkillAttributes.OutputSpeech = response.Response.OutputSpeech;
-                //response.Response.Reprompt = null;
+                switch (request.SkillState())
+                {
+                    case SkillState.BombStopper_AreYouReady:
+                    case SkillState.BombStopper_GameOn:
+                    case SkillState.BombStopper_PlayAgain:
+                        var hubContext = GlobalHost.ConnectionManager.GetHubContext<BombStopperHub>();
+                        hubContext.Clients.User(request.Session.User.UserId).goHome();
+                        response.Response.OutputSpeech.Text = "Ok. Come back when you want to play again.";
+                        response.Response.ShouldEndSession = true;
+                        response.Response.Reprompt = null;
+                        break;
+                    default:
+                        response.SessionAttributes.SkillAttributes.OutputSpeech = response.Response.OutputSpeech;
+                        response.Response.ShouldEndSession = false;
+                        break;
+                }
             }
             catch (Exception ex)
             {
@@ -177,55 +195,180 @@ namespace AlexaSkillsService.Utilities
             return response;
         }
 
-        private AlexaResponse ProcessYearIntent(AlexaRequest request, AlexaResponse response)
+        private async Task<AlexaResponse> ProcessYearIntent(AlexaRequest request, AlexaResponse response)
         {
-            var userInput = (string)request.Request.Intent.Slots["Year"].value;
-
-            int? year = null;
-
-            int iYear;
-            if (int.TryParse(userInput, out iYear))
-                year = iYear;
-            else
+            try
             {
-                DateTime dt;
-                if (DateTime.TryParse(userInput, out dt))
-                    year = dt.Year;
-            }
+                var userInput = (string)request.Request.Intent.Slots["Year"].value;
 
-            if (year != null)
-            {
-                if (request.Session.Attributes.SkillAttributes.SkillState == (int)GameState.WaitingForYear)
+                int? year = null;
+
+                int iYear;
+                if (int.TryParse(userInput, out iYear))
+                    year = iYear;
+                else
                 {
-                    //TODO: Remove GameState?
-                    var gameId = int.Parse(request.Session.Attributes.SkillAttributes.KeyValuePairs.FirstOrDefault(kvp => kvp.Key == "GameId").Value);
-                    var game = _bombStopperGameManager.GetGameById(gameId);
-                    if (game.Year == year)
+                    DateTime dt;
+                    if (DateTime.TryParse(userInput, out dt))
+                        year = dt.Year;
+                }
+
+                if (year != null)
+                {
+                    switch (request.SkillState())
                     {
-                        response.Response.OutputSpeech.Text = $"I'm sending you the bomb defusal field manual from {year}. I'm going to check out the bomb and tell you what I see. Are you ready?";
-                        response.SessionAttributes.SkillAttributes.SkillState = (int)GameState.AreYouReady;
-                        response.Response.ShouldEndSession = false;
-                    }
-                    else
-                    {
-                        //TODO: Handle the case where the year is incorrect
-                        response.Response.ShouldEndSession = true;
+                        case SkillState.BombStopper_WaitingForYear:
+                            var gameId = request.SessionItem<int>(SessionKey.BombStopper_GameId);
+                            var game = _bombStopperGameManager.GetGameById(gameId);
+                            if (game.Year == year)
+                            {
+                                response.Response.OutputSpeech.Text = $"I'm sending you the bomb defusal field manual from {year}. I'm going to check out the bomb and tell you what I see. Are you ready?";
+                                response.Response.Reprompt.OutputSpeech.Text = "Are you ready to start? Say yes or no.";
+                                response.SetSkillState(SkillState.BombStopper_AreYouReady);
+                                response.Response.ShouldEndSession = false;
+                            }
+                            else
+                            {
+                                var yearQuestionMaxTries = _configurationAdapter.YearQuestionMaxTries;
+                                var timesAnsweredYear = request.SessionItem<int>(SessionKey.BombStopper_TimesAnsweredYearQuestion);
+                                if (timesAnsweredYear == yearQuestionMaxTries)
+                                {
+                                    var hubContext = GlobalHost.ConnectionManager.GetHubContext<BombStopperHub>();
+                                    hubContext.Clients.User(game.UserId).goHome();
+                                    response.Response.OutputSpeech.Text = $"Sorry, {year} was not the right year. Do you want to start a new game?";
+                                    response.Response.ShouldEndSession = false;
+                                }
+                                else
+                                {
+                                    response.Response.OutputSpeech.Text = $"Sorry, {year} was not the right year. What is the year on the bomb?";
+                                    response.Response.ShouldEndSession = false;
+                                }
+                            }
+                            break;
+                        default:
+                            response.SessionAttributes.SkillAttributes.OutputSpeech = response.Response.OutputSpeech;
+                            response.Response.ShouldEndSession = true;
+                            break;
                     }
                 }
                 else
                 {
-                    response.Response.OutputSpeech.Text = "I heard you say the year " + year + ", but I didn't ask for a year.";
-                    response.Response.ShouldEndSession = true;
+                    response.SessionAttributes.SkillAttributes.OutputSpeech = response.Response.OutputSpeech;
+                    response.Response.ShouldEndSession = false;
                 }
             }
-            
-            
-            //response.Response.OutputSpeech.Text = content;
-            //response.SessionAttributes.SkillAttributes.OutputSpeech = response.Response.OutputSpeech;
+            catch (Exception ex)
+            {
+                return await SafeExceptionHandler.ThrowSafeException(ex, response);
+            }
             return response;
         }
 
-        //Example of Amazon.Time Intent
+        private async Task<AlexaResponse> ProcessColorIntent(AlexaRequest request, AlexaResponse response)
+        {
+            try
+            {
+                switch (request.SkillState())
+                {
+                    case SkillState.BombStopper_GameOn:
+                        var color = (string)request.Request.Intent.Slots["Color"].value;
+                        var gameId = request.SessionItem<int>(SessionKey.BombStopper_GameId);
+                        var game = _bombStopperGameManager.GetGameById(gameId);
+                        var countOfColor = game.Wires.Count(w => string.Equals(color, w.Color.ToString(), StringComparison.OrdinalIgnoreCase));
+                        if (countOfColor == 0)
+                        {
+                            response.Response.OutputSpeech.Text = $"There are no {color} wires. Which wire should I cut?";
+                            response.Response.Reprompt.OutputSpeech.Text = "Do you need more time?";
+                        }
+                        else if (countOfColor > 1)
+                        {
+                            response.Response.OutputSpeech.Text = $"There is more than one {color} wire. Which wire should I cut?";
+                            response.Response.Reprompt.OutputSpeech.Text = "Do you need more time?";
+                        }
+                        else
+                        {
+                            var sortOrder = game.Wires.Single(w => string.Equals(color, w.Color.ToString(), StringComparison.OrdinalIgnoreCase)).SortOrder;
+                            Solve(request, response, gameId, sortOrder);
+                        }
+
+                        break;
+                    default:
+                        response.SessionAttributes.SkillAttributes.OutputSpeech = response.Response.OutputSpeech;
+                        break;
+                }
+                response.Response.ShouldEndSession = false;
+            }
+            catch (Exception ex)
+            {
+                return await SafeExceptionHandler.ThrowSafeException(ex, response);
+            }
+            return response;
+        }
+
+        private void Solve(AlexaRequest request, AlexaResponse response, int gameId, int sortOrder)
+        {
+            var finishedGame = _bombStopperGameManager.Solve(gameId, sortOrder);
+            response.SetSkillState(SkillState.BombStopper_PlayAgain);
+            var hubContext = GlobalHost.ConnectionManager.GetHubContext<BombStopperHub>();
+            hubContext.Clients.User(request.Session.User.UserId).goToResult();
+            if (finishedGame.Won == true)
+                response.Response.OutputSpeech.Text = $"OK. I cut the {sortOrder.GetOrdinal()} wire. The timer stopped. That was it!. Good job! Do you want to play again?";
+            else
+            {
+                response.Response.OutputSpeech.Ssml = $"<speak>I'm cutting the {sortOrder.GetOrdinal()} wire. Oh no! Something isn't right.<audio src=\"https://alexadev.hopto.org/Content/Audio/explosion1.mp3\" />Do you want to play again?</speak>";
+                response.Response.OutputSpeech.Type = "SSML";
+
+            }
+        }
+
+        private async Task<AlexaResponse> ProcessOrdinalIntent(AlexaRequest request, AlexaResponse response)
+        {
+            try
+            {
+                switch (request.SkillState())
+                {
+                    case SkillState.BombStopper_GameOn:
+                        var userInput = (string)request.Request.Intent.Slots["Ordinal"].value;
+
+                        Ordinal ordinal = null;
+                        if (userInput.Equals("last", StringComparison.OrdinalIgnoreCase) || Ordinal.TryParse(userInput, out ordinal))
+                        {
+                            var gameId = request.SessionItem<int>(SessionKey.BombStopper_GameId);
+                            var game = _bombStopperGameManager.GetGameById(gameId);
+
+                            if (userInput.Equals("last", StringComparison.OrdinalIgnoreCase))
+                            {
+                                var positionOfLast = game.Wires.Count;
+                                Solve(request, response, gameId, positionOfLast);
+                            }
+                            else
+                            {
+                                Debug.Assert(ordinal != null, "ordinal != null");
+                                if (ordinal.IntValue > game.Wires.Count)
+                                {
+                                    response.Response.OutputSpeech.Text = $"There are fewer than {ordinal.IntValue} wires. Which wire should I cut?";
+                                    response.Response.Reprompt.OutputSpeech.Text = "Do you need more time?";
+                                }
+                                else
+                                {
+                                    Solve(request, response, gameId, ordinal.IntValue);
+                                }
+                            }
+                        }
+                        break;
+                    default:
+                        response.SessionAttributes.SkillAttributes.OutputSpeech = response.Response.OutputSpeech;
+                        break;
+                }
+                response.Response.ShouldEndSession = false;
+            }
+            catch (Exception ex)
+            {
+                return await SafeExceptionHandler.ThrowSafeException(ex, response);
+            }
+            return response;
+        }
+
         private async Task<AlexaResponse> ProcessTimeIntent(AlexaRequest request, AlexaResponse response)
         {
             var content = "";
@@ -273,7 +416,6 @@ namespace AlexaSkillsService.Utilities
             return response;
         }
 
-        //Example of Amazon.Date Intent
         private async Task<AlexaResponse> ProcessDateIntent(AlexaRequest request, AlexaResponse response)
         {
             var content = "";
@@ -324,16 +466,18 @@ namespace AlexaSkillsService.Utilities
 
         private AlexaResponse ProcessHelpIntent(AlexaRequest request, AlexaResponse response)
         {
-            if (request.Session.Attributes.SkillAttributes.SkillState == (int)GameState.WaitingForYear)
+            //TODO: Code Help for each game state.
+            switch (request.SkillState())
             {
-                response.Response.OutputSpeech.Text = $"From a web browser, go to www.bombstopper.com. Click the Start Game button. Enter serial number 99999 and click the check mark. Tell me the year that you see on the bomb.";
-                response.Response.Reprompt.OutputSpeech.Text = response.Response.OutputSpeech.Text;
-                response.Response.ShouldEndSession = false;
-            }
-            else
-            {
-                response.Response.OutputSpeech.Text = "";
-                response.Response.ShouldEndSession = true;
+                case (int)SkillState.BombStopper_WaitingForYear:
+                    response.Response.OutputSpeech.Text = $"From a web browser, go to www.bombstopper.com. Click the Start Game button. Enter serial number 99999 and click the check mark. Tell me the year that you see on the bomb.";
+                    response.Response.Reprompt.OutputSpeech.Text = response.Response.OutputSpeech.Text;
+                    response.Response.ShouldEndSession = false;
+                    break;
+                default:
+                    response.SessionAttributes.SkillAttributes.OutputSpeech = response.Response.OutputSpeech;
+                    response.Response.ShouldEndSession = false;
+                    break;
             }
 
             return response;

@@ -12,24 +12,7 @@
 }
 else
 {
-    <h1>Serial Number @Model.SerialNumber</h1>
-
     <h2>Seconds to Solve: @Model.SecondsToSolve</h2>
-
-    @*<h2>Wires:</h2>
-
-    foreach (var wire in Model.Wires.OrderBy(w => w.SortOrder))
-    {
-        using (Html.BeginForm("Solve", "BombStopper", FormMethod.Post))
-        {
-            <input type="hidden" name="wireToCut" value="@wire.SortOrder"/>
-            <input type="hidden" name="cryptoGameId" value="@Model.CryptoGameId"/>
-            @wire.SortOrder
-            <button type="submit" class="btn btn-primary" style="background-color: @wire.Color; display: inline; width: 150px; height: 10px; margin-bottom: 5px;">&nbsp;</button>
-        }
-    }*@
-
-    <h2>How to Defuse This Bomb...</h2>
 
     foreach (var ruleSet in Model.RuleSets.OrderBy(rs => rs.NumberOfWires))
     {
@@ -53,4 +36,32 @@ else
             <li>otherwise, @ruleSet.FallThroughRuleText.</li>
         </ul>
     }
+
+    using (Html.BeginForm("Result", "BombStopper", FormMethod.Post, new { id = "goToResultForm" }))
+    {
+        <input type="hidden" name="cryptoGameId" value="@Model.CryptoGameId" />
+    }
+}
+
+@section scripts
+{
+    <script src="~/Scripts/jquery.signalR-2.2.1.min.js"></script>
+    <script src="~/signalr/hubs"></script>
+    <script type="text/javascript">
+        $(function() {
+            var hub = $.connection.bombStopperHub;
+
+            hub.client.goHome = function() {
+                window.location.href = 'Index';
+            };
+
+            hub.client.goToResult = function() {
+                setTimeout(function() {
+                    $('#goToResultForm').submit();
+                }, 5000);
+            };
+
+            $.connection.hub.start();
+        });
+    </script>
 }

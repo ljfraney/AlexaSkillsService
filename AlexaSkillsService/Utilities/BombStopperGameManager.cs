@@ -85,11 +85,9 @@ namespace AlexaSkillsService.Utilities
             return game?.ToModel();
         }
 
-        public Game StartGame(string cryptoGameId, double minutesToOpenGame)
+        public Game StartGame(int gameId, double minutesToOpenGame)
         {
             var numMinutesAgo = DateTime.UtcNow.AddMinutes(-minutesToOpenGame);
-
-            var gameId = int.Parse(Crypto.DecryptStringAES(cryptoGameId, _configurationAdapter.SharedSecret));
 
             var game = _alexaSkillsContext.Games
                 .Where(g => g.GameId == gameId && g.TimeCreated >= numMinutesAgo && g.TimeCompleted == null)
@@ -245,13 +243,11 @@ namespace AlexaSkillsService.Utilities
             return ruleSet;
         }
 
-        public Game Solve(string cryptoGameId, int wireToCut)
+        public Game Solve(int gameId, int wireToCut)
         {
             //TODO: Finding some false negatives. Look for logic errors.
 
             var timeCompleted = DateTime.UtcNow;
-
-            var gameId = int.Parse(Crypto.DecryptStringAES(cryptoGameId, _configurationAdapter.SharedSecret));
 
             var game = _alexaSkillsContext.Games
                 .Where(g => g.GameId == gameId)

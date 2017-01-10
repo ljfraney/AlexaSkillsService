@@ -10,8 +10,8 @@ namespace AlexaSkillsService.Interfaces
 
         Game GetGameById(int gameId);
 
-        Game StartGame(string cryptoGameId, double minutesToOpenGame);
+        Game StartGame(int gameId, double minutesToOpenGame);
 
-        Game Solve(string cryptoGameId, int wireToCut);
+        Game Solve(int gameId, int wireToCut);
     }
 }

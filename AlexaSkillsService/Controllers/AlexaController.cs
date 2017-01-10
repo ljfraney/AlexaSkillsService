@@ -48,7 +48,7 @@ namespace AlexaSkillsService.Controllers
                     throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest));
 
                 if (alexaRequest.Session.Application.ApplicationId == _configurationAdapter.BombStopperAppId)
-                    _skillRequestHandler = new BombStopperRequestHandler(new BombStopperGameManager(_alexaSkillsContext, _configurationAdapter));
+                    _skillRequestHandler = new BombStopperRequestHandler(new BombStopperGameManager(_alexaSkillsContext, _configurationAdapter), _configurationAdapter);
                 else
                     throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest));
 

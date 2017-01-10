@@ -59,7 +59,6 @@
     <Compile Include="Attributes.cs" />
     <Compile Include="Card.cs" />
     <Compile Include="BombStopper\Game.cs" />
-    <Compile Include="BombStopper\GameState.cs" />
     <Compile Include="BombStopper\Mapper.cs" />
     <Compile Include="BombStopper\RuleSet.cs" />
     <Compile Include="BombStopper\Rule.cs" />
@@ -72,7 +71,9 @@
     <Compile Include="Request.cs" />
     <Compile Include="Response.cs" />
     <Compile Include="Session.cs" />
+    <Compile Include="SessionKey.cs" />
     <Compile Include="SkillAttributes.cs" />
+    <Compile Include="SkillState.cs" />
     <Compile Include="User.cs" />
   </ItemGroup>
   <ItemGroup>

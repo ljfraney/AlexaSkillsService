@@ -50,9 +50,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AlexaRequestExtender.cs" />
+    <Compile Include="AlexaResponseExtender.cs" />
     <Compile Include="Crypto.cs" />
     <Compile Include="ListExtender.cs" />
     <Compile Include="IntExtender.cs" />
+    <Compile Include="Ordinal.cs" />
+    <Compile Include="OrdinalDictionary.cs" />
     <Compile Include="RandomHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SafeExceptionHandler.cs" />

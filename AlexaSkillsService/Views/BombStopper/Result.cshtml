@@ -30,3 +30,20 @@ else
     </h2>
 }
 
+@section scripts
+{
+    <script src="~/Scripts/jquery.signalR-2.2.1.min.js"></script>
+    <script src="~/signalr/hubs"></script>
+    <script type="text/javascript">
+        $(function() {
+            var hub = $.connection.bombStopperHub;
+
+            hub.client.goHome = function() {
+                window.location.href = 'Index';
+            };
+
+            $.connection.hub.start();
+        });
+    </script>
+}
+
