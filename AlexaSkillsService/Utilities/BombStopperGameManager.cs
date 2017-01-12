@@ -69,6 +69,9 @@ namespace AlexaSkillsService.Utilities
                 .Where(g => g.SerialNumber == iSerialNumber && g.TimeCreated >= numMinutesAgo && g.TimeCompleted == null)
                 .Include(g => g.RuleSets.Select(rs => rs.Rules))
                 .Include(g => g.Wires).FirstOrDefault();
+
+            if (game == null)
+                return null;
             
             var gameModel = game.ToModel();
             gameModel.CryptoGameId = Crypto.EncryptStringAES(gameModel.GameId.ToString(), _configurationAdapter.SharedSecret);

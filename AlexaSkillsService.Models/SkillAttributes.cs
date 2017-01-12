@@ -9,9 +9,6 @@ namespace AlexaSkillsService.Models
     // ReSharper disable UnusedMember.Global
     public class SkillAttributes
     {
-        //This class maps to the 
-        public string LastRequestIntent { get; set; }
-
         public int SkillState { get; set; }
 
         public List<KeyValuePair<string, string>> KeyValuePairs { get; set; }
@@ -20,7 +17,6 @@ namespace AlexaSkillsService.Models
 
         public SkillAttributes()
         {
-            LastRequestIntent = "";
             OutputSpeech = new OutputSpeech();
             KeyValuePairs = new List<KeyValuePair<string, string>>();
         }

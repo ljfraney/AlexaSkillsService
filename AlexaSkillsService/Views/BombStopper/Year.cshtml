@@ -6,7 +6,7 @@
 
 <div style="text-align: center; margin-top: 200px">
     <h1>@Model.Year</h1>
-    @using (Html.BeginForm("Game", "BombStopper", new {}, FormMethod.Post, new { id = "toGameForm", style = "display: none;"}))
+    @using (Html.BeginForm("Game", "BombStopper", new { }, FormMethod.Post, new { id = "toGameForm", style = "display: none;" }))
     {
         @Html.HiddenFor(m => m.CryptoGameId)
     }
@@ -31,13 +31,4 @@
             $.connection.hub.start();
         });
     </script>
-
-    @if (ViewBag.Debug != null && ViewBag.Debug == true)
-    {
-    <script type="text/javascript">
-        $(function() {
-            $('#toGameForm').show();
-        });
-    </script>
-    }
 }

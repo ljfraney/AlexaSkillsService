@@ -30,25 +30,17 @@ namespace AlexaSkillsService.Controllers
         }
 
         [HttpPost]
-        public ActionResult NewGame()
-        {
-            var game = _bombStopperGameManager.CreateGame("test", "test");
-            return View("Test2", game);
-        }
-
-        [HttpPost]
         public ActionResult Year(string serialNumber)
         {
-#if DEBUG
-            ViewBag.Debug = true;
-#endif
             //User has five minutes to get to the Year view.
             var game = _bombStopperGameManager.GetGameBySerialNumber(serialNumber, 5.0);
             if (game != null)
             {
                 FormsAuthentication.SetAuthCookie(game.UserId, false);
+                return View("Year", game);
             }
-            return View("Year", game);
+            ViewBag.BadSerial = true;
+            return View("Index");
         }
 
         [HttpPost]

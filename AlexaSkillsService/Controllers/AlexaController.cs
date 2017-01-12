@@ -57,13 +57,13 @@ namespace AlexaSkillsService.Controllers
                 switch (alexaRequest.Request.Type)
                 {
                     case "LaunchRequest":
-                        response = _skillRequestHandler.HandleLaunchRequest(alexaRequest, response);
+                        response = await _skillRequestHandler.HandleLaunchRequest(alexaRequest, response);
                         break;
                     case "IntentRequest":
                         response = await _skillRequestHandler.HandleIntentRequest(alexaRequest, response);
                         break;
                     case "SessionEndedRequest":
-                        response = _skillRequestHandler.HandleSessionEndedRequest(alexaRequest, response);
+                        response = await _skillRequestHandler.HandleSessionEndedRequest(alexaRequest, response);
                         break;
                     default:
                         throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest));
