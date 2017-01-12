@@ -6,12 +6,9 @@
 
 <div style="text-align: center; margin-top: 200px">
     <h1>@Model.Year</h1>
-    @if (ViewBag.Debug != null)
+    @using (Html.BeginForm("Game", "BombStopper", new {}, FormMethod.Post, new { id = "toGameForm", style = "display: none;"}))
     {
-        using (Html.BeginForm("Game", "BombStopper", new {}, FormMethod.Post, new { id = "toGameForm", style = "display: none;"}))
-        {
-            @Html.HiddenFor(m => m.CryptoGameId)
-        }
+        @Html.HiddenFor(m => m.CryptoGameId)
     }
 </div>
 
@@ -32,10 +29,6 @@
             };
 
             $.connection.hub.start();
-            //    .done(function()
-            //{
-            //    hub.server.imHere();
-            //});
         });
     </script>
 

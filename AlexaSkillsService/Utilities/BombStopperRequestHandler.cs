@@ -315,7 +315,7 @@ namespace AlexaSkillsService.Utilities
                 response.Response.OutputSpeech.Text = $"OK. I cut the {sortOrder.GetOrdinal()} wire. The timer stopped. That was it!. Good job! Do you want to play again?";
             else
             {
-                response.Response.OutputSpeech.Ssml = $"<speak>I'm cutting the {sortOrder.GetOrdinal()} wire. Oh no! Something isn't right.<audio src=\"https://alexadev.hopto.org/Content/Audio/explosion1.mp3\" />Do you want to play again?</speak>";
+                response.Response.OutputSpeech.Ssml = $"<speak>I'm cutting the {sortOrder.GetOrdinal()} wire. Oh no! Something isn't right.<audio src=\"{_configurationAdapter.ExplosionAudioUrl}\" />Do you want to play again?</speak>";
                 response.Response.OutputSpeech.Type = "SSML";
 
             }

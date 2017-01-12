@@ -12,5 +12,7 @@ namespace AlexaSkillsService.Utilities
         public string SharedSecret => ConfigurationManager.AppSettings["SharedSecret"];
 
         public int YearQuestionMaxTries => int.Parse(ConfigurationManager.AppSettings["YearQuestionMaxTries"]);
+
+        public string ExplosionAudioUrl => ConfigurationManager.AppSettings["ExplosionAudioUrl"];
     }
 }

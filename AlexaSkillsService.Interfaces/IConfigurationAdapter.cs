@@ -7,5 +7,7 @@ namespace AlexaSkillsService.Interfaces
         string SharedSecret { get; }
 
         int YearQuestionMaxTries { get; }
+
+        string ExplosionAudioUrl { get; }
     }
 }
